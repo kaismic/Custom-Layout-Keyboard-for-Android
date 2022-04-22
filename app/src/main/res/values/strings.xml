@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Colemak Based Keyboard</string>
     <string name="subtype_en_US">English (US)</string>
+    <string name="subtype_ko_KR">한국어 (KR)</string>
+
+    <string name="spacebar_text_english">&lt; English (US) &gt;</string>
+    <string name="spacebar_text_korean">&lt; 한국어 &gt;</string>
 </resources>
