@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="common_key_width">41dp</dimen>
+    <dimen name="common_key_width">40dp</dimen>
+    <dimen name="row_2_key_width">39dp</dimen>
+    <dimen name="number_key_width">39dp</dimen>
+
+    <dimen name="special_key_width">46dp</dimen>
+    <dimen name="backspace_width">54dp</dimen>
     <dimen name="caps_lock_width">48dp</dimen>
-    <dimen name="spacebar_width">180dp</dimen>
-    <dimen name="return_key_width">56dp</dimen>
+    <dimen name="spacebar_width">185dp</dimen>
+    <dimen name="return_key_width">60dp</dimen>
 
     <dimen name="common_key_text_size">18dp</dimen>
     <dimen name="caps_lock_text_size">24dp</dimen>
@@ -15,4 +20,6 @@
     <dimen name="row_2_height">48dp</dimen>
     <dimen name="row_3_height">48dp</dimen>
     <dimen name="row_4_height">56dp</dimen>
+
+    <dimen name="row_1_key_margin">1dp</dimen>
 </resources>
