@@ -1,26 +1,32 @@
-package com.example.colemakbasedkeyboard
+package com.soobakjonmat.colemakbasedkeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 
-class ColemakBasedKeyboard : InputMethodService(), View.OnClickListener {
+class ColemakBasedKeyboard : InputMethodService(), View.OnClickListener, View.OnLongClickListener {
     private var capsLockId : Int = 0
     private var backspaceId : Int = 0
     private var specialKeyId : Int = 0
     private var spacebarId : Int = 0
     private var returnKeyId : Int = 0
 
-    override fun onCreateInputView(): View {
-        val keyboardView: View = layoutInflater.inflate(R.layout.colemak_base_english, null)
+    private var letterBtns : ArrayList<Button> = ArrayList(26)
 
+    override fun onCreateInputView(): View {
+        val keyboardView: View = layoutInflater.inflate(R.layout.english_lowercase, null)
+
+        // On Click
         for (i in 0 until 9) {
             keyboardView.findViewById<View>(resources.getIdentifier("key_$i", "id", this.packageName)).setOnClickListener(this)
         }
         var letter = 'A'
+        var btn : Button
         while (letter <= 'Z') {
-            keyboardView.findViewById<View>(resources.getIdentifier("key_$letter", "id", this.packageName)).setOnClickListener(this)
+            btn = keyboardView.findViewById(resources.getIdentifier("key_$letter", "id", this.packageName))
+            btn.setOnClickListener(this)
+            letterBtns.add(btn)
             letter++
         }
         keyboardView.findViewById<View>(resources.getIdentifier("comma", "id", this.packageName)).setOnClickListener(this)
@@ -37,6 +43,10 @@ class ColemakBasedKeyboard : InputMethodService(), View.OnClickListener {
         returnKeyId = resources.getIdentifier("return_key", "id", this.packageName)
         keyboardView.findViewById<View>(returnKeyId).setOnClickListener(this)
 
+        // On Long Click todo
+
+        // On Swipe todo
+
         return keyboardView
     }
 
@@ -45,7 +55,15 @@ class ColemakBasedKeyboard : InputMethodService(), View.OnClickListener {
         val ic = this.currentInputConnection
         if (v is Button) {
             if (v.id == capsLockId) {
-                //todo change to new layout or change key texts
+                if (letterBtns[0].text.toString() == "a") {
+                    for (btn in letterBtns) {
+                        btn.text = btn.text.toString().uppercase()
+                    }
+                } else {
+                    for (btn in letterBtns) {
+                        btn.text = btn.text.toString().lowercase()
+                    }
+                }
                 return
             }
             if (v.id == backspaceId) {
@@ -69,6 +87,10 @@ class ColemakBasedKeyboard : InputMethodService(), View.OnClickListener {
         }
     }
 
-    // todo on key hold and swipe
+    override fun onLongClick(v: View?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    // todo on key swipe
 }
 

@@ -1,4 +1,4 @@
-package com.example.colemakbasedkeyboard
+package com.soobakjonmat.colemakbasedkeyboard
 
 import org.junit.Test
 

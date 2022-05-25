@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.colemakbasedkeyboard">
+    package="com.soobakjonmat.colemakbasedkeyboard">
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -8,7 +8,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.ColemakBasedKeyboard">
 
-        <service android:name="ColemakBasedKeyboard"
+        <service android:name="com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true">
@@ -19,7 +19,7 @@
                        android:resource="@xml/method" />
         </service>
 
-        <activity android:name="ColemakBasedKeyboardSettings"
+        <activity android:name="com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboardSettings"
             android:label="Colemak Based Keyboard Settings"
             android:exported="true">
             <intent-filter>

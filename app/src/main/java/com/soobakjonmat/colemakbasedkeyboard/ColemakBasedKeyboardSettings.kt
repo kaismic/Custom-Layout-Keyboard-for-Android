@@ -1,4 +1,4 @@
-package com.example.colemakbasedkeyboard
+package com.soobakjonmat.colemakbasedkeyboard
 
 import android.app.Activity
 import android.os.Bundle

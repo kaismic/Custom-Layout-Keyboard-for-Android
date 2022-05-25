@@ -4,8 +4,15 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/colemak_base_english.xml" value="0.4" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/english_lowercase.xml" value="0.264" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/english_uppercase.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/hangul_lowercase.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/keyboard.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/numbers.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/preview.xml" value="0.18432971014492755" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_0.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_4.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_5.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/settings.xml" value="0.264" />
       </map>
     </option>
