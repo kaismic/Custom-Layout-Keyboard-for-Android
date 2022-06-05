@@ -19,7 +19,7 @@
                        android:resource="@xml/method" />
         </service>
 
-        <activity android:name="com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboardSettings"
+        <activity android:name="com.soobakjonmat.colemakbasedkeyboard.KeyboardSetting"
             android:label="Colemak Based Keyboard Settings"
             android:exported="true">
             <intent-filter>

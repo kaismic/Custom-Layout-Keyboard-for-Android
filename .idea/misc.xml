@@ -3,17 +3,33 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/caps_lock.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/caps_lock_mode_0.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/caps_lock_mode_1.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/caps_lock_mode_2.xml" value="0.1895" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/ic_baseline_arrow_right_alt_24.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/ic_launcher_background.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/drawable/keyboard_icon_1.xml" value="0.151" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/colemak_base_english.xml" value="0.4" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/control_row.xml" value="0.1" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/control_row_1.xml" value="0.2734375" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/english_layout.xml" value="0.1" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/english_lowercase.xml" value="0.264" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/english_uppercase.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/hangul_lowercase.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/keyboard.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/korean_layout.xml" value="0.1334853090172239" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/main_layout.xml" value="0.2734375" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/number_row.xml" value="0.1265625" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/numbers.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/preview.xml" value="0.18432971014492755" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_0.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_4.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/row_5.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/layout/settings.xml" value="0.264" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.151" />
+        <entry key="..\:/Users/isac0/AndroidStudioProjects/ColemakBasedKeyboard/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.151" />
       </map>
     </option>
   </component>

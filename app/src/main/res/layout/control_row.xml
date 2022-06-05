@@ -2,13 +2,13 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/row_4_height"
+    android:layout_height="@dimen/control_row_height"
     android:gravity="center">
 
     <Button
         android:id="@+id/special_key"
         android:layout_width="0dp"
-        android:layout_weight="1"
+        android:layout_weight="@dimen/special_key_weight"
         android:layout_height="match_parent"
         android:padding="0dp"
         android:text="!@#"
@@ -17,7 +17,7 @@
     <Button
         android:id="@+id/comma"
         android:layout_width="0dp"
-        android:layout_weight="1"
+        android:layout_weight="@dimen/comma_key_weight"
         android:layout_height="match_parent"
         android:textAllCaps="false"
         android:padding="0dp"
@@ -26,7 +26,7 @@
     <Button
         android:id="@+id/spacebar"
         android:layout_width="0dp"
-        android:layout_weight="5"
+        android:layout_weight="@dimen/spacebar_weight"
         android:layout_height="match_parent"
         android:textAllCaps="false"
         android:padding="0dp"
@@ -35,7 +35,7 @@
     <Button
         android:id="@+id/full_stop"
         android:layout_width="0dp"
-        android:layout_weight="1"
+        android:layout_weight="@dimen/full_stop_weight"
         android:layout_height="match_parent"
         android:textAllCaps="false"
         android:padding="0dp"
@@ -44,7 +44,7 @@
     <Button
         android:id="@+id/return_key"
         android:layout_width="0dp"
-        android:layout_weight="2"
+        android:layout_weight="@dimen/return_key_weight"
         android:layout_height="match_parent"
         android:textAllCaps="false"
         android:padding="0dp"
