@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="@dimen/common_row_height"
-    android:gravity="center">
+    android:gravity="center"
+    tools:ignore="HardcodedText">
     <Button
         android:id="@+id/key_1"
         android:layout_width="0dp"

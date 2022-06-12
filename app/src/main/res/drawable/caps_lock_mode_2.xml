@@ -2,8 +2,9 @@
     android:autoMirrored="true"
     android:height="24dp" android:width="24dp"
     android:viewportWidth="24" android:viewportHeight="24"
+    android:tint="@color/white"
     >
-    <path android:fillColor="#FFFFFF"
+    <path android:fillColor="#FF3546"
         android:strokeColor="#FFF"
         android:strokeWidth="1"
         android:strokeLineJoin="round"
