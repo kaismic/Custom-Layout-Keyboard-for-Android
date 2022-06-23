@@ -2,9 +2,10 @@ package com.soobakjonmat.colemakbasedkeyboard
 
 import android.annotation.SuppressLint
 import android.inputmethodservice.InputMethodService
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.*
 import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
@@ -36,6 +37,7 @@ class ColemakBasedKeyboard : InputMethodService() {
 
     private var mode = 1
     private var lastDownX = 0f
+    private var lastCursorPos = 0
     /*
     init row 1 (numbers row) and row 5 (control row) by adding onClickListener and other listener
 
@@ -71,6 +73,7 @@ class ColemakBasedKeyboard : InputMethodService() {
         for (i in 0 until numberLayout.childCount) {
             numberBtns.add(numberLayout.getChildAt(i) as Button)
             numberBtns[i].setOnClickListener {
+                resetAndFinishComposing()
                 currentInputConnection.commitText(numberBtns[i].text.toString(), 1)
             }
         }
@@ -78,15 +81,16 @@ class ColemakBasedKeyboard : InputMethodService() {
         // special key
         specialKeyBtn = mainKeyboardView.findViewById(R.id.special_key)
         specialKeyBtn.setOnClickListener {
+            resetAndFinishComposing()
             // todo change layout to special key layout
         }
         // comma
         commaBtn = mainKeyboardView.findViewById(R.id.comma)
         commaBtn.setOnClickListener {
+            resetAndFinishComposing()
             currentInputConnection.commitText(",", 1)
         }
         // spacebar
-        // todo on scroll change language mode
         spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
         spacebarBtn.setOnClickListener {
 
@@ -96,8 +100,9 @@ class ColemakBasedKeyboard : InputMethodService() {
             if (action == MotionEvent.ACTION_DOWN) {
                 lastDownX = motionEvent.rawX
             } else if (action == MotionEvent.ACTION_MOVE) {
-                // todo show transition between layout on top
+                // todo show transition between layout on top. Use popup
             } else if (action == MotionEvent.ACTION_UP) {
+                resetAndFinishComposing()
                 // on scroll keyboard
                 if ((lastDownX - motionEvent.rawX).absoluteValue > spacebarMinSlideDist) {
                     when (mode) {
@@ -124,11 +129,13 @@ class ColemakBasedKeyboard : InputMethodService() {
         // full stop
         fullStopBtn = mainKeyboardView.findViewById(R.id.full_stop)
         fullStopBtn.setOnClickListener {
+            resetAndFinishComposing()
             currentInputConnection.commitText(".", 1)
         }
         // return key
         returnKeyBtn = mainKeyboardView.findViewById(R.id.return_key)
         returnKeyBtn.setOnClickListener {
+            resetAndFinishComposing()
             currentInputConnection.performEditorAction(EditorInfo.IME_ACTION_SEND)
         }
 
@@ -136,11 +143,33 @@ class ColemakBasedKeyboard : InputMethodService() {
         return mainKeyboardView
     }
 
-    fun deleteWholeWord() {
+    // todo set return key image according to EditorInfo
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
+        currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
+    }
+
+    override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
+        Log.i("---", "onUpdateCursorAnchorInfo is called")
+        val currPos = cursorAnchorInfo.selectionEnd
+        Log.i("-----currPos", currPos.toString())
+        Log.i("koreanLayout.hangulAssembler.cursorMovedBySystem", koreanLayout.hangulAssembler.cursorMovedBySystem.toString())
+        if ((currPos != lastCursorPos + 1 || !koreanLayout.hangulAssembler.cursorMovedBySystem) && currPos != lastCursorPos) {
+            Log.i("----------------", "currPos is not equal to last currpos+1 or bla")
+            resetAndFinishComposing()
+        }
+        lastCursorPos = currPos
+    }
+
+    override fun onFinishInputView(finishingInput: Boolean) {
+        resetAndFinishComposing()
+    }
+
+    fun deleteWholeWord(): Boolean {
         var count = 2
         var textBefore = ""
         if (this.currentInputConnection.getTextBeforeCursor(count, 0).isNullOrEmpty()) {
-            return
+            return false
         }
         while (this.currentInputConnection.getTextBeforeCursor(count, 0)?.get(0) != ' ' &&
             this.currentInputConnection.getTextBeforeCursor(count, 0)?.length != textBefore.length) {
@@ -148,21 +177,22 @@ class ColemakBasedKeyboard : InputMethodService() {
             count++
         }
         this.currentInputConnection.deleteSurroundingText(count, 0)
+        return true
     }
 
     private fun changeLayout() {
-        this.currentInputConnection.finishComposingText()
         // delete middle rows
         for (i in 0 until 3) {
             mainKeyboardView.removeViewAt(1)
         }
         when (mode) {
-            // special keys layout
+            // todo special keys layout
             0 -> {
-                // todo
+
             }
             // english layout
             1 -> {
+
                 englishLayout.insertLetterBtnsOnKeyboard()
             }
             // korean layout
@@ -170,6 +200,11 @@ class ColemakBasedKeyboard : InputMethodService() {
                 koreanLayout.insertLetterBtnsOnKeyboard()
             }
         }
+    }
+
+    private fun resetAndFinishComposing() {
+        koreanLayout.hangulAssembler.reset()
+        currentInputConnection.finishComposingText()
     }
 
     private fun setColorTheme(theme: String) { // todo set subtext colors

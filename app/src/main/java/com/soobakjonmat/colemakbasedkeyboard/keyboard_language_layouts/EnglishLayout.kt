@@ -170,10 +170,9 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
         }
         backspaceBtn.setOnLongClickListener {
             Timer().schedule(timerTask {
-                if (!backspaceBtn.isPressed) {
+                if (!backspaceBtn.isPressed || !mainActivity.deleteWholeWord()) {
                     this.cancel()
                 }
-                mainActivity.deleteWholeWord()
             }, 0, rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }

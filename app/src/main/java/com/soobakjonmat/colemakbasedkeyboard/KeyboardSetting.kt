@@ -8,4 +8,11 @@ class KeyboardSetting : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings)
     }
+    /* todo settings:
+    long click rapid input interval
+    dark/light mode
+    vibration
+    if possible and have a lot of time: key layout change
+
+     */
 }

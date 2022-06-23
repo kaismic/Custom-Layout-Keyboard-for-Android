@@ -2,6 +2,7 @@ package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
@@ -14,7 +15,7 @@ import java.util.Timer
 import kotlin.concurrent.timerTask
 
 class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
-    private val hangulAssembler = HangulAssembler(mainActivity)
+    val hangulAssembler = HangulAssembler(mainActivity)
     private val ctx = mainActivity.baseContext
     private val mainKeyboardView = mainActivity.mainKeyboardView
     private val resources: Resources = mainActivity.baseContext.resources
@@ -128,14 +129,20 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
             resources.getFloat(R.dimen.backspace_weight)
         )
         backspaceBtn.setOnClickListener {
-            hangulAssembler.deleteText()
+            if (mainActivity.currentInputConnection.getSelectedText(0).isNullOrEmpty()) {
+                // no selection, so delete previous character
+                hangulAssembler.deleteText()
+            } else {
+                // delete the selection
+                mainActivity.currentInputConnection.commitText("", 1)
+            }
+
         }
         backspaceBtn.setOnLongClickListener {
             Timer().schedule(timerTask {
-                if (!backspaceBtn.isPressed) {
+                if (!backspaceBtn.isPressed || !mainActivity.deleteWholeWord()) {
                     this.cancel()
                 }
-                mainActivity.deleteWholeWord()
             }, 0, rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }
