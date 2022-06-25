@@ -3,18 +3,13 @@
     <dimen name="caps_lock_weight">1.2</dimen>
     <dimen name="backspace_weight">1.3</dimen>
 
-    <dimen name="special_key_weight">1</dimen>
+    <dimen name="special_key_weight">1.39</dimen>
     <dimen name="comma_key_weight">1</dimen>
-    <dimen name="spacebar_weight">5</dimen>
+    <dimen name="spacebar_weight">6</dimen>
     <dimen name="full_stop_weight">1</dimen>
-    <dimen name="return_key_weight">2</dimen>
+    <dimen name="return_key_weight">1.5</dimen>
 
     <dimen name="common_key_text_size">18sp</dimen>
     <dimen name="spacebar_text_size">16sp</dimen>
     <dimen name="return_key_text_size">24sp</dimen>
-
-    <dimen name="common_row_height">48dp</dimen>
-    <dimen name="control_row_height">56dp</dimen>
-
-    <dimen name="english_letter_text_size">20</dimen>
 </resources>

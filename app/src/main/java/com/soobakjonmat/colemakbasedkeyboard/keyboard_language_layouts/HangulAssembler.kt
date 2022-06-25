@@ -1,6 +1,5 @@
 package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
 
-import android.util.Log
 import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
 
 class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
@@ -33,7 +32,6 @@ class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
     var cursorMovedBySystem = false
 
     fun commitText(letterStr: String) {
-        Log.i("---", "commitText is called")
         val letterChar = letterStr.toCharArray()[0]
         cursorMovedBySystem = false
         // if 곯, 돣, 쵧, 핎, 즲, 잽, 춘, 봘, 욕, 칻, 웧, 오, 수, 브, 돼, 케, 뮈, ㄱ, ㅅ, ㅎ, ㅈ, ㅌ, ㅇ
@@ -106,7 +104,6 @@ class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
                             // if char is combinable based on med vowel first: 오 + ㅐ, 수 + ㅓ, 브 + ㅣ
                             if (combinableVowelMap.getValue(medVowelFirst).contains(letterChar)) {
                                 medVowelSecond = letterChar
-                                Log.i("index to plus", combinableVowelMap.getValue(medVowelFirst).indexOf(letterChar).toString())
                                 medVowelIdx += 1+combinableVowelMap.getValue(medVowelFirst).indexOf(letterChar)
                                 mainActivity.currentInputConnection.setComposingText(getAssembledLetter(), 1)
                             }
@@ -122,9 +119,15 @@ class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
                     }
                     // if char is a consonant
                     else {
-                        finConsFirst = letterChar
-                        finConsIdx = finConsList.indexOf(letterChar)
-                        mainActivity.currentInputConnection.setComposingText(getAssembledLetter(), 1)
+                        // if 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'
+                        if (finConsList.contains(letterChar)) {
+                            finConsFirst = letterChar
+                            finConsIdx = finConsList.indexOf(letterChar)
+                            mainActivity.currentInputConnection.setComposingText(getAssembledLetter(), 1)
+                        }
+                        else {
+                            finishAndCommitText(letterChar)
+                        }
                     }
                 }
             }
@@ -137,11 +140,10 @@ class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
                         // if char is combinable based on init consonant first: ㄱ + ㅅ, ㄴ + ㅈ, ㄹ + ㅌ, ㅂ + ㅅ
                         if (combinableConsMap.getValue(initConsFirst).contains(letterChar)) {
                             initConsSecond = letterChar
-                            val outputText: String
-                            if (initConsFirst == 'ㄱ') {
-                                outputText = "ㄳ"
+                            val outputText: String = if (initConsFirst == 'ㄱ') {
+                                "ㄳ"
                             } else {
-                                outputText = finConsList[finConsList.indexOf(initConsFirst) + 1+combinableConsMap.getValue(initConsFirst).indexOf(initConsSecond)].toString()
+                                finConsList[finConsList.indexOf(initConsFirst) + 1+combinableConsMap.getValue(initConsFirst).indexOf(initConsSecond)].toString()
                             }
                             mainActivity.currentInputConnection.setComposingText(outputText, 1)
                         }
@@ -285,7 +287,6 @@ class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
     }
 
     private fun finishAndCommitText(letter: Char) {
-        Log.i("---", "finishAndCommitText is called")
         cursorMovedBySystem = true
         mainActivity.currentInputConnection.finishComposingText()
         reset()

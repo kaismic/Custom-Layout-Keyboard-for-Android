@@ -1,7 +1,12 @@
 package com.soobakjonmat.colemakbasedkeyboard
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.widget.TextView
 
 class KeyboardSetting : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

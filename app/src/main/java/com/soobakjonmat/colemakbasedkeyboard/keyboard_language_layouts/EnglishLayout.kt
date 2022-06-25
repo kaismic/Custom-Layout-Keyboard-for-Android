@@ -2,13 +2,19 @@ package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
-import android.util.TypedValue
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.view.GestureDetector
+
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.setPadding
 import androidx.core.view.size
+
 import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
 import com.soobakjonmat.colemakbasedkeyboard.R
 import java.util.Timer
@@ -20,18 +26,15 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val resources: Resources = mainActivity.baseContext.resources
     private val rapidTextDeleteInterval = mainActivity.rapidTextDeleteInterval
     private val colorThemeMap = mainActivity.colorThemeMap
-    private val delGestureMinDist = mainActivity.spacebarMinSlideDist
+    private val gestureMinDist = mainActivity.gestureMinDist
 
     private var capsLockMode = 0
     private val capsLockBtn = ImageButton(ctx)
     private val backspaceBtn = Button(ctx)
 
-    private val capsLockMode0Image = ResourcesCompat.getDrawable(resources, R.drawable.caps_lock_mode_0, null)
-    private val capsLockMode1Image = ResourcesCompat.getDrawable(resources, R.drawable.caps_lock_mode_1, null)
-    private val capsLockMode2Image = ResourcesCompat.getDrawable(resources, R.drawable.caps_lock_mode_2, null)
-
-    private var lastDownX = 0f
-    private var lastDownLetter = ""
+    private val capsLockMode0Image = mainActivity.capsLockMode0Image
+    private val capsLockMode1Image = mainActivity.capsLockMode1Image
+    private val capsLockMode2Image = mainActivity.capsLockMode2Image
 
     private val row1Letters = listOf("q", "w", "f", "p", "g", "j", "l", "u", "y")
     private val row2Letters = listOf("a", "s", "d", "t", "r", "h", "e", "k", "i", "o")
@@ -48,79 +51,57 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val row3: LinearLayout = LinearLayout(ctx)
     private val rowList = listOf(row1, row2, row3)
 
-
-    /*
-    sample xml codes
-        <LinearLayout
-        android:id="@+id/row_2"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/row_1_height"
-        android:gravity="center"
-        android:orientation="horizontal">
-        </LinearLayout>
-
-        <Button
-        android:id="@+id/key_Q"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:layout_width="0dp"
-        android:textAllCaps="false"
-        android:padding="0dp"
-        android:text="q"
-        />
-     */
-
+    var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
-        // todo subtext with long click
         for (i in letterList.indices) {
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                resources.getDimensionPixelSize(R.dimen.common_row_height)
+                0,
+                1f
             )
             rowList[i].orientation = LinearLayout.HORIZONTAL
             // create letter buttons and set attributes
             for (j in letterList[i].indices) {
-                btnList[i][j].text = letterList[i][j]
-                val param = LinearLayout.LayoutParams(
+                val text = SpannableString(mainActivity.subTextLetterList[i][j] + "\n" + letterList[i][j])
+                if (mainActivity.subTextLetterList[i][j] != "") {
+                    text.setSpan(
+                        ForegroundColorSpan(colorThemeMap.getValue("subText")),
+                        0,
+                        1,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+                text.setSpan(
+                    RelativeSizeSpan(1.2f),
+                    text.length - 1,
+                    text.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                btnList[i][j].text = text
+                btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     1f
                 )
-                btnList[i][j].layoutParams = param
                 btnList[i][j].isAllCaps = false
-                // set text size
-                btnList[i][j].setTextSize(TypedValue.COMPLEX_UNIT_DIP, resources.getFloat(R.dimen.english_letter_text_size))
+                btnList[i][j].setPadding(0)
 
-                btnList[i][j].setOnTouchListener { btn, motionEvent ->
-                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                        lastDownX = motionEvent.rawX
-                        lastDownLetter = (btn as Button).text.toString()
-                    } else if (motionEvent.action == MotionEvent.ACTION_UP) {
+                val gestureDetector = GestureDetector(ctx, SimpleGestureDetector(mainActivity, this, i, j))
+                btnList[i][j].setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
                         // on fling keyboard from right to left
-                        if (lastDownX - motionEvent.rawX > delGestureMinDist) {
-                            mainActivity.deleteWholeWord()
+                        if (lastDownX - event.rawX > gestureMinDist) {
+                            mainActivity.deleteByWord(-1)
                         }
-                        // on click
-                        else
-                        {
-                            if (capsLockMode == 0) {
-                                mainActivity.currentInputConnection.commitText(lastDownLetter, 1)
-                            } else {
-                                if (capsLockMode == 1) {
-                                    setToLowercase()
-                                    capsLockBtn.setImageDrawable(capsLockMode0Image)
-                                    capsLockMode = 0
-                                }
-                                mainActivity.currentInputConnection.commitText(lastDownLetter.uppercase(), 1)
-                            }
+                        else if (event.rawX - lastDownX > gestureMinDist) {
+                            mainActivity.deleteByWord(1)
                         }
                     }
-                    return@setOnTouchListener true
+                    return@setOnTouchListener gestureDetector.onTouchEvent(event)
                 }
-
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
             }
@@ -170,7 +151,7 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
         }
         backspaceBtn.setOnLongClickListener {
             Timer().schedule(timerTask {
-                if (!backspaceBtn.isPressed || !mainActivity.deleteWholeWord()) {
+                if (!backspaceBtn.isPressed || !mainActivity.deleteByWord(-1)) {
                     this.cancel()
                 }
             }, 0, rapidTextDeleteInterval)
@@ -180,8 +161,8 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
         row3.addView(backspaceBtn, row3.size)
     }
 
-    fun insertLetterBtnsOnKeyboard() {
-        for (i in rowList.size-1 downTo 0) {
+    fun insertLetterBtns() {
+        for (i in rowList.size - 1 downTo 0) {
             mainKeyboardView.addView(rowList[i], 1)
         }
     }
@@ -194,7 +175,7 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
         }
     }
 
-    private fun setToLowercase() {
+    fun setToLowercase() {
         for (i in letterList.indices) {
             for (j in letterList[i].indices) {
                 btnList[i][j].isAllCaps = false
@@ -202,8 +183,8 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
         }
     }
 
-    // todo use setBackgroundResource by making a drawable background button resource
-    fun setColorTheme() { // todo set subtext colors
+
+    fun setColor() {
         for (i in letterList.indices) {
             for (j in letterList[i].indices) {
                 // letter buttons
@@ -215,6 +196,39 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
                 backspaceBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
                 backspaceBtn.setTextColor(colorThemeMap.getValue("mainText"))
             }
+        }
+    }
+
+    private class SimpleGestureDetector(
+        private val mainActivity: ColemakBasedKeyboard,
+        private val layout: EnglishLayout,
+        private val i: Int,
+        private val j: Int
+        ) : GestureDetector.SimpleOnGestureListener() {
+
+        override fun onDown(event: MotionEvent): Boolean {
+            layout.lastDownX = event.rawX
+            return super.onDown(event)
+        }
+
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
+            if (layout.capsLockMode == 0) {
+                mainActivity.currentInputConnection.commitText(layout.letterList[i][j], 1)
+            } else {
+                if (layout.capsLockMode == 1) {
+                    layout.setToLowercase()
+                    layout.capsLockBtn.setImageDrawable(layout.capsLockMode0Image)
+                    layout.capsLockMode = 0
+                }
+                mainActivity.currentInputConnection.commitText(layout.letterList[i][j].uppercase(), 1)
+            }
+            return super.onSingleTapUp(event)
+        }
+
+        override fun onLongPress(event: MotionEvent) {
+            mainActivity.resetAndFinishComposing()
+            mainActivity.currentInputConnection.commitText(mainActivity.subTextLetterList[i][j], 1)
+            return super.onLongPress(event)
         }
     }
 }
