@@ -1,6 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
-
-import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
+package com.soobakjonmat.colemakbasedkeyboard
 
 class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
     private var initConsFirst = 0.toChar()

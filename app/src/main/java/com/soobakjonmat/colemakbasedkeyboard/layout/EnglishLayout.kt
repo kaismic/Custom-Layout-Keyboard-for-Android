@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
+package com.soobakjonmat.colemakbasedkeyboard.layout
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
@@ -6,6 +6,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.util.TypedValue
 import android.view.GestureDetector
 
 import android.view.MotionEvent
@@ -28,10 +29,6 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val colorThemeMap = mainActivity.colorThemeMap
     private val gestureMinDist = mainActivity.gestureMinDist
 
-    private var capsLockMode = 0
-    private val capsLockBtn = ImageButton(ctx)
-    private val backspaceBtn = Button(ctx)
-
     private val capsLockMode0Image = mainActivity.capsLockMode0Image
     private val capsLockMode1Image = mainActivity.capsLockMode1Image
     private val capsLockMode2Image = mainActivity.capsLockMode2Image
@@ -41,21 +38,21 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val row3Letters = listOf("z", "x", "c", "v", "b", "n", "m")
     private val letterList = listOf(row1Letters, row2Letters, row3Letters)
 
-    private val row1Btns: List<Button> = List(row1Letters.size) { Button(ctx) }
-    private val row2Btns: List<Button> = List(row2Letters.size) { Button(ctx) }
-    private val row3Btns: List<Button> = List(row3Letters.size) { Button(ctx) }
-    private val btnList = listOf(row1Btns, row2Btns, row3Btns)
+    private val btnList = mutableListOf<List<Button>>()
 
-    private val row1: LinearLayout = LinearLayout(ctx)
-    private val row2: LinearLayout = LinearLayout(ctx)
-    private val row3: LinearLayout = LinearLayout(ctx)
-    private val rowList = listOf(row1, row2, row3)
+    private val rowList = List(letterList.size) { LinearLayout(ctx) }
 
-    var lastDownX = 0f
+    private val capsLockBtn = ImageButton(ctx)
+    private val backspaceBtn = Button(ctx)
+
+    private var capsLockMode = 0
+    private var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
         for (i in letterList.indices) {
+            // add buttons to btnList
+            btnList.add(List(letterList[i].size) { Button(ctx) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -75,7 +72,7 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
                     )
                 }
                 text.setSpan(
-                    RelativeSizeSpan(1.2f),
+                    RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)),
                     text.length - 1,
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -95,9 +92,11 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
                         // on fling keyboard from right to left
                         if (lastDownX - event.rawX > gestureMinDist) {
                             mainActivity.deleteByWord(-1)
+                            return@setOnTouchListener true
                         }
                         else if (event.rawX - lastDownX > gestureMinDist) {
                             mainActivity.deleteByWord(1)
+                            return@setOnTouchListener true
                         }
                     }
                     return@setOnTouchListener gestureDetector.onTouchEvent(event)
@@ -131,10 +130,11 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
                 }
             }
         }
-        row3.addView(capsLockBtn, 0)
+        rowList[rowList.size-1].addView(capsLockBtn, 0)
 
         // set backspaceBtn attributes
         backspaceBtn.text = resources.getString(R.string.backspace_symbol)
+        backspaceBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
             0,
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -158,7 +158,7 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
             return@setOnLongClickListener true
         }
 
-        row3.addView(backspaceBtn, row3.size)
+        rowList[rowList.size-1].addView(backspaceBtn, rowList[rowList.size-1].size)
     }
 
     fun insertLetterBtns() {
@@ -182,7 +182,6 @@ class EnglishLayout(private val mainActivity: ColemakBasedKeyboard) {
             }
         }
     }
-
 
     fun setColor() {
         for (i in letterList.indices) {

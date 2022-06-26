@@ -6,6 +6,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.*
@@ -13,16 +14,25 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts.*
+import com.soobakjonmat.colemakbasedkeyboard.layout.*
 import kotlin.math.absoluteValue
 
 class ColemakBasedKeyboard : InputMethodService() {
     lateinit var mainKeyboardView: LinearLayout
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
+    private lateinit var specialKeyLayout: SpecialKeyLayout
     val rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
     private val colorTheme = "dark"
+
+    private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+    private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
+
+    private val subTextRow1Letters = listOf("", "", "`", "\\", "|", "[", "]", "{", "}")
+    private val subTextRow2Letters = listOf("", "", "", "", "_", "~", ":", ";", "\"", "'")
+    private val subTextRow3Letters = listOf("×", "÷", "=", "+", "-", "*", "/")
+    val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
 
     val colorThemeMap = mutableMapOf(
         "bg" to 0,
@@ -30,13 +40,6 @@ class ColemakBasedKeyboard : InputMethodService() {
         "commonBtnBg" to 0,
         "subText" to 0,
     )
-    private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-    private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
-
-    private val subTextRow1Letters = listOf("", "", "", "", "", "_", "~", "{", "}")
-    private val subTextRow2Letters = listOf("", "", "", "", "\"", "'", ":", ";", "[", "]")
-    private val subTextRow3Letters = listOf("", "", "=", "+", "-", "*", "/")
-    val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
 
     private lateinit var numBtns: List<Button>
     private lateinit var specialKeyBtn: Button
@@ -53,25 +56,10 @@ class ColemakBasedKeyboard : InputMethodService() {
     private var lastDownSpacebarX = 0f
     private var lastCursorPos = 0
 
-
-    /*
-    init row 1 (numbers row) and row 5 (control row) by adding onClickListener and other listener
-
-    when changing language
-    swap row 2 ~ 4
-
-    mode = 1
-    keyboardModeDict =
-    { 0: "special key layout"
-      1: "english layout"
-      2: "korean layout"
-          }
-    show keyboardModeDict[mode] to spacebar text
-     */
-
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreateInputView(): View {
         // todo vibration
+        // todo key touch sound
         mainKeyboardView = layoutInflater.inflate(R.layout.main_layout, null) as LinearLayout
 
         capsLockMode0Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_0, null)
@@ -97,7 +85,7 @@ class ColemakBasedKeyboard : InputMethodService() {
             if (numBtnSubTexts[i] != "") {
                 text.setSpan(ForegroundColorSpan(colorThemeMap.getValue("subText")), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            text.setSpan(RelativeSizeSpan(1.2f), text.length-1, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            text.setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), text.length-1, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             numBtns[i].text = text
             numBtns[i].setOnLongClickListener {
                 resetAndFinishComposing()
@@ -114,8 +102,15 @@ class ColemakBasedKeyboard : InputMethodService() {
         // special key
         specialKeyBtn = mainKeyboardView.findViewById(R.id.special_key)
         specialKeyBtn.setOnClickListener {
-            resetAndFinishComposing()
-            // todo change layout to special key layout
+            if (mode != 0) {
+                mode = 0
+                changeLayout()
+                specialKeyBtn.text = getString(R.string.special_key_text_english)
+            } else {
+                mode = 1
+                changeLayout()
+                specialKeyBtn.text = getString(R.string.special_key_text_special_key)
+            }
         }
         // spacebar
         spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
@@ -129,11 +124,11 @@ class ColemakBasedKeyboard : InputMethodService() {
             } else if (action == MotionEvent.ACTION_MOVE) {
                 // todo show transition between layout on top. Use popup
             } else if (action == MotionEvent.ACTION_UP) {
-                resetAndFinishComposing()
                 // on scroll keyboard
                 if ((lastDownSpacebarX - motionEvent.rawX).absoluteValue > gestureMinDist) {
                     when (mode) {
                         0 -> {
+                            specialKeyBtn.text = getString(R.string.special_key_text_special_key)
                             mode = 1
                         }
                         1 -> {
@@ -154,18 +149,21 @@ class ColemakBasedKeyboard : InputMethodService() {
         }
         // comma
         commaBtn = mainKeyboardView.findViewById(R.id.comma)
+        commaBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         commaBtn.setOnClickListener {
             resetAndFinishComposing()
             currentInputConnection.commitText(",", 1)
         }
         // full stop
         fullStopBtn = mainKeyboardView.findViewById(R.id.full_stop)
+        fullStopBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         fullStopBtn.setOnClickListener {
             resetAndFinishComposing()
             currentInputConnection.commitText(".", 1)
         }
         // return key
         returnKeyBtn = mainKeyboardView.findViewById(R.id.return_key)
+        returnKeyBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         returnKeyBtn.setOnClickListener {
             resetAndFinishComposing()
             currentInputConnection.performEditorAction(EditorInfo.IME_ACTION_SEND)
@@ -175,6 +173,8 @@ class ColemakBasedKeyboard : InputMethodService() {
         englishLayout.init()
         koreanLayout = KoreanLayout(this)
         koreanLayout.init()
+        specialKeyLayout = SpecialKeyLayout(this)
+        specialKeyLayout.init()
         // initially insert english layout on default
         englishLayout.insertLetterBtns()
 
@@ -237,14 +237,15 @@ class ColemakBasedKeyboard : InputMethodService() {
     }
 
     private fun changeLayout() {
+        resetAndFinishComposing()
         // delete middle rows
-        for (i in 0 until 3) {
+        for (i in 0 until mainKeyboardView.childCount-2) {
             mainKeyboardView.removeViewAt(1)
         }
         when (mode) {
-            // todo special keys layout
             0 -> {
-
+                specialKeyLayout.insertLetterBtns()
+                spacebarBtn.text = getString(R.string.spacebar_text_special_key)
             }
             // english layout
             1 -> {
@@ -306,6 +307,7 @@ class ColemakBasedKeyboard : InputMethodService() {
         // language layouts
         englishLayout.setColor()
         koreanLayout.setColor()
+        specialKeyLayout.setColor()
 
         // caps lock image drawable
         capsLockMode0Image?.setTint(colorThemeMap.getValue("mainText"))

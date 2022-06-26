@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard.keyboard_language_layouts
+package com.soobakjonmat.colemakbasedkeyboard.layout
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
@@ -6,6 +6,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.widget.Button
@@ -14,6 +15,7 @@ import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
+import com.soobakjonmat.colemakbasedkeyboard.HangulAssembler
 import com.soobakjonmat.colemakbasedkeyboard.R
 import java.util.Timer
 import kotlin.concurrent.timerTask
@@ -28,10 +30,6 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val gestureMinDist = mainActivity.gestureMinDist
     val hangulAssembler = HangulAssembler(mainActivity)
 
-    private var capsLockMode = 0
-    private val capsLockBtn = ImageButton(ctx)
-    private val backspaceBtn = Button(ctx)
-
     private val capsLockMode0Image = mainActivity.capsLockMode0Image
     private val capsLockMode1Image = mainActivity.capsLockMode1Image
 
@@ -40,36 +38,30 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
     private val row3Letters = listOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
     private val letterList = listOf(row1Letters, row2Letters, row3Letters)
 
-    private val combinedRow1Letters = mutableListOf<SpannableString>()
-    private val combinedRow2Letters = mutableListOf<SpannableString>()
-    private val combinedRow3Letters = mutableListOf<SpannableString>()
-    private val combinedLetterList = listOf(combinedRow1Letters, combinedRow2Letters, combinedRow3Letters)
+    private val combinedLetterList = List(letterList.size) { mutableListOf<SpannableString>() }
 
     private val capsRow1Letters = listOf("ㅃ", "ㅉ", "ㄸ", "ㄲ", "ㅆ", "ㅛ", "ㅕ", "ㅑ", "ㅒ")
     private val capsRow2Letters = listOf("ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ", "ㅖ")
     private val capsRow3Letters = listOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
     private val capsLetterList = listOf(capsRow1Letters, capsRow2Letters, capsRow3Letters)
 
-    private val combinedCapsRow1Letters = mutableListOf<SpannableString>()
-    private val combinedCapsRow2Letters = mutableListOf<SpannableString>()
-    private val combinedCapsRow3Letters = mutableListOf<SpannableString>()
-    private val combinedCapsLetterList = listOf(combinedCapsRow1Letters, combinedCapsRow2Letters, combinedCapsRow3Letters)
+    private val combinedCapsLetterList = List(capsLetterList.size) { mutableListOf<SpannableString>() }
 
-    private val row1Btns: List<Button> = List(row1Letters.size) { Button(ctx) }
-    private val row2Btns: List<Button> = List(row2Letters.size) { Button(ctx) }
-    private val row3Btns: List<Button> = List(row3Letters.size) { Button(ctx) }
-    private val btnList = listOf(row1Btns, row2Btns, row3Btns)
+    private val btnList = mutableListOf<List<Button>>()
 
-    private val row1: LinearLayout = LinearLayout(ctx)
-    private val row2: LinearLayout = LinearLayout(ctx)
-    private val row3: LinearLayout = LinearLayout(ctx)
-    private val rowList = listOf(row1, row2, row3)
+    private val rowList = List(letterList.size) { LinearLayout(ctx) }
+
+    private val capsLockBtn = ImageButton(ctx)
+    private val backspaceBtn = Button(ctx)
 
     private var lastDownX = 0f
+    private var capsLockMode = 0
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
         for (i in letterList.indices) {
+            // add buttons to btnList
+            btnList.add(List(letterList[i].size) { Button(ctx) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -96,13 +88,13 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
                     )
                 }
                 text.setSpan(
-                    RelativeSizeSpan(1.2f),
+                    RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)),
                     text.length - 1,
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
                 capsText.setSpan(
-                    RelativeSizeSpan(1.2f),
+                    RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)),
                     text.length - 1,
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -123,8 +115,10 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
                         // on fling keyboard from right to left
                         if (lastDownX - event.rawX > gestureMinDist) {
                             mainActivity.deleteByWord(-1)
+                            return@setOnTouchListener true
                         } else if (event.rawX - lastDownX > gestureMinDist) {
                             mainActivity.deleteByWord(1)
+                            return@setOnTouchListener true
                         }
                     }
                     return@setOnTouchListener gestureDetector.onTouchEvent(event)
@@ -155,10 +149,12 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
                 }
             }
         }
-        row3.addView(capsLockBtn, 0)
+        rowList[rowList.size-1].addView(capsLockBtn, 0)
 
         // set backspaceBtn attributes
         backspaceBtn.text = resources.getString(R.string.backspace_symbol)
+        backspaceBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
+
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
             0,
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -182,8 +178,7 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
             }, 0, rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }
-
-        row3.addView(backspaceBtn, row3.size)
+        rowList[rowList.size-1].addView(backspaceBtn, rowList[rowList.size-1].size)
     }
 
     fun insertLetterBtns() {
