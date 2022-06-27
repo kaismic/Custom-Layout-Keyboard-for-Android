@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.soobakjonmat.colemakbasedkeyboard">
+    package="com.soobakjonmat.customlayoutkeyboard">
 
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/Theme.ColemakBasedKeyboard">
+        android:theme="@style/Theme.CustomLayoutKeyboard">
 
-        <service android:name="com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard"
+        <service android:name="com.soobakjonmat.customlayoutkeyboard.CustomLayoutKeyboard"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true">
@@ -19,8 +19,7 @@
                        android:resource="@xml/method" />
         </service>
 
-        <activity android:name="com.soobakjonmat.colemakbasedkeyboard.KeyboardSetting"
-            android:label="Colemak Based Keyboard Settings"
+        <activity android:name="com.soobakjonmat.customlayoutkeyboard.KeyboardSetting"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard.layout
+package com.soobakjonmat.customlayoutkeyboard.layout
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
@@ -14,14 +14,14 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
-import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
-import com.soobakjonmat.colemakbasedkeyboard.HangulAssembler
-import com.soobakjonmat.colemakbasedkeyboard.R
+import com.soobakjonmat.customlayoutkeyboard.CustomLayoutKeyboard
+import com.soobakjonmat.customlayoutkeyboard.HangulAssembler
+import com.soobakjonmat.customlayoutkeyboard.R
 import java.util.Timer
 import kotlin.concurrent.timerTask
 import kotlin.collections.List
 
-class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
+class KoreanLayout(private val mainActivity: CustomLayoutKeyboard) {
     private val ctx = mainActivity.baseContext
     private val mainKeyboardView = mainActivity.mainKeyboardView
     private val resources: Resources = mainActivity.baseContext.resources
@@ -219,7 +219,7 @@ class KoreanLayout(private val mainActivity: ColemakBasedKeyboard) {
     }
 
     private class SimpleGestureDetector(
-        private val mainActivity: ColemakBasedKeyboard,
+        private val mainActivity: CustomLayoutKeyboard,
         private val layout: KoreanLayout,
         private val i: Int,
         private val j: Int

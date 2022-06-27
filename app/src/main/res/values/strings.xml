@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Colemak Based Keyboard</string>
+    <string name="app_name">Custom Layout Keyboard</string>
     <string name="subtype_en_US">English (US)</string>
     <string name="subtype_ko_KR">한국어 (KR)</string>
 

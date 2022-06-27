@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard
+package com.soobakjonmat.customlayoutkeyboard
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,6 +1,6 @@
-package com.soobakjonmat.colemakbasedkeyboard
+package com.soobakjonmat.customlayoutkeyboard
 
-class HangulAssembler(private val mainActivity: ColemakBasedKeyboard) {
+class HangulAssembler(private val mainActivity: CustomLayoutKeyboard) {
     private var initConsFirst = 0.toChar()
     private var initConsSecond = 0.toChar()
     private var initConsIdx = -1

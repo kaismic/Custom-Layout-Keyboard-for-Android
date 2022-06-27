@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard
+package com.soobakjonmat.customlayoutkeyboard
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

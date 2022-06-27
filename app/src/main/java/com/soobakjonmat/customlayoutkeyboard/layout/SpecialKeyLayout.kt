@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard.layout
+package com.soobakjonmat.customlayoutkeyboard.layout
 
 import android.annotation.SuppressLint
 import android.content.res.Resources
@@ -9,12 +9,12 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
-import com.soobakjonmat.colemakbasedkeyboard.ColemakBasedKeyboard
-import com.soobakjonmat.colemakbasedkeyboard.R
+import com.soobakjonmat.customlayoutkeyboard.CustomLayoutKeyboard
+import com.soobakjonmat.customlayoutkeyboard.R
 import java.util.*
 import kotlin.concurrent.timerTask
 
-class SpecialKeyLayout(private val mainActivity: ColemakBasedKeyboard) {
+class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
     private val ctx = mainActivity.baseContext
     private val mainKeyboardView = mainActivity.mainKeyboardView
     private val resources: Resources = mainActivity.baseContext.resources

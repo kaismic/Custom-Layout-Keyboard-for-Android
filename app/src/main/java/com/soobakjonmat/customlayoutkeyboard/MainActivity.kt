@@ -1,4 +1,4 @@
-package com.soobakjonmat.colemakbasedkeyboard
+package com.soobakjonmat.customlayoutkeyboard
 
 import android.annotation.SuppressLint
 import android.inputmethodservice.InputMethodService
@@ -14,10 +14,10 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.soobakjonmat.colemakbasedkeyboard.layout.*
+import com.soobakjonmat.customlayoutkeyboard.layout.*
 import kotlin.math.absoluteValue
 
-class ColemakBasedKeyboard : InputMethodService() {
+class CustomLayoutKeyboard : InputMethodService() {
     lateinit var mainKeyboardView: LinearLayout
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
