@@ -16,10 +16,7 @@ import org.junit.Assert.*
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
     @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.colemakbasedkeyboard", appContext.packageName)
-
+    fun testBasicMath() {
+        assertEquals(8, 3+5)
     }
 }
