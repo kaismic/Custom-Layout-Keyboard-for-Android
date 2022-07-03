@@ -2,29 +2,34 @@ package com.soobakjonmat.customlayoutkeyboard
 
 import android.annotation.SuppressLint
 import android.inputmethodservice.InputMethodService
+import android.os.VibrationEffect
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.*
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
+import androidx.preference.PreferenceFragmentCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.google.android.material.button.MaterialButton
 import com.soobakjonmat.customlayoutkeyboard.layout.*
 import kotlin.math.absoluteValue
 
-class CustomLayoutKeyboard : InputMethodService() {
+class MainKeyboardService : InputMethodService() {
     lateinit var mainKeyboardView: LinearLayout
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
     private lateinit var specialKeyLayout: SpecialKeyLayout
     val rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
-    private val colorTheme = "dark"
+    private val colorTheme = 1
 
     private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
@@ -46,11 +51,31 @@ class CustomLayoutKeyboard : InputMethodService() {
     private lateinit var commaBtn: Button
     private lateinit var spacebarBtn: Button
     private lateinit var fullStopBtn: Button
-    private lateinit var returnKeyBtn: Button
+    private lateinit var returnKeyBtn: ImageButton
 
     var capsLockMode0Image: VectorDrawableCompat? = null
     var capsLockMode1Image: VectorDrawableCompat? = null
     var capsLockMode2Image: VectorDrawableCompat? = null
+    var backspaceImage: VectorDrawableCompat? = null
+    private var returnKeyImageSearch: VectorDrawableCompat? = null
+    private var returnKeyImageDone: VectorDrawableCompat? = null
+    private var returnKeyImageForward: VectorDrawableCompat? = null
+    private var returnKeyImageReturn: VectorDrawableCompat? = null
+    private var returnKeyImageTab: VectorDrawableCompat? = null
+
+    private val searchIconActionList = listOf(
+        EditorInfo.IME_ACTION_SEARCH,
+        EditorInfo.IME_ACTION_GO,
+    )
+    private val doneIconActionList = listOf(
+        EditorInfo.IME_ACTION_DONE
+    )
+    private val returnIconActionList = listOf(
+        EditorInfo.IME_ACTION_SEND
+    )
+    private val tabIconActionList = listOf(
+        EditorInfo.IME_ACTION_NEXT
+    )
 
     private var mode = 1
     private var lastDownSpacebarX = 0f
@@ -58,19 +83,23 @@ class CustomLayoutKeyboard : InputMethodService() {
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreateInputView(): View {
-        // todo vibration
-        // todo key touch sound
         mainKeyboardView = layoutInflater.inflate(R.layout.main_layout, null) as LinearLayout
 
         capsLockMode0Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_0, null)
         capsLockMode1Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_1, null)
         capsLockMode2Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_2, null)
+        backspaceImage = VectorDrawableCompat.create(resources, R.drawable.ic_outline_backspace_24, null)
+        returnKeyImageSearch = VectorDrawableCompat.create(resources, R.drawable.ic_outline_search_24, null)
+        returnKeyImageDone = VectorDrawableCompat.create(resources, R.drawable.ic_outline_done_24, null)
+        returnKeyImageReturn = VectorDrawableCompat.create(resources, R.drawable.ic_outline_keyboard_return_24, null)
+        returnKeyImageTab = VectorDrawableCompat.create(resources, R.drawable.ic_outline_keyboard_tab_24, null)
+        returnKeyImageForward = VectorDrawableCompat.create(resources, R.drawable.ic_outline_arrow_forward_24, null)
 
         initColorTheme(colorTheme)
 
         // number buttons
         val numberRow = mainKeyboardView.findViewById<LinearLayout>(R.id.number_row)
-        numBtns = List(numbers.size) { Button(baseContext) }
+        numBtns = List(numbers.size) { Button(this) }
 
         for (i in numbers.indices) {
             numBtns[i].layoutParams = LinearLayout.LayoutParams(
@@ -88,11 +117,13 @@ class CustomLayoutKeyboard : InputMethodService() {
             text.setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), text.length-1, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             numBtns[i].text = text
             numBtns[i].setOnLongClickListener {
+                vibrate()
                 resetAndFinishComposing()
                 currentInputConnection.commitText(numBtnSubTexts[i], 1)
                 return@setOnLongClickListener true
             }
             numBtns[i].setOnClickListener {
+                vibrate()
                 resetAndFinishComposing()
                 currentInputConnection.commitText(numbers[i], 1)
             }
@@ -102,6 +133,7 @@ class CustomLayoutKeyboard : InputMethodService() {
         // special key
         specialKeyBtn = mainKeyboardView.findViewById(R.id.special_key)
         specialKeyBtn.setOnClickListener {
+            vibrate()
             if (mode != 0) {
                 mode = 0
                 changeLayout()
@@ -114,12 +146,10 @@ class CustomLayoutKeyboard : InputMethodService() {
         }
         // spacebar
         spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
-        spacebarBtn.setOnClickListener {
-
-        }
         spacebarBtn.setOnTouchListener { _, motionEvent ->
             val action = motionEvent.action
             if (action == MotionEvent.ACTION_DOWN) {
+                vibrate()
                 lastDownSpacebarX = motionEvent.rawX
             } else if (action == MotionEvent.ACTION_MOVE) {
                 // todo show transition between layout on top. Use popup
@@ -151,6 +181,7 @@ class CustomLayoutKeyboard : InputMethodService() {
         commaBtn = mainKeyboardView.findViewById(R.id.comma)
         commaBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         commaBtn.setOnClickListener {
+            vibrate()
             resetAndFinishComposing()
             currentInputConnection.commitText(",", 1)
         }
@@ -158,15 +189,16 @@ class CustomLayoutKeyboard : InputMethodService() {
         fullStopBtn = mainKeyboardView.findViewById(R.id.full_stop)
         fullStopBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         fullStopBtn.setOnClickListener {
+            vibrate()
             resetAndFinishComposing()
             currentInputConnection.commitText(".", 1)
         }
         // return key
         returnKeyBtn = mainKeyboardView.findViewById(R.id.return_key)
-        returnKeyBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         returnKeyBtn.setOnClickListener {
+            vibrate()
             resetAndFinishComposing()
-            currentInputConnection.performEditorAction(EditorInfo.IME_ACTION_SEND)
+            currentInputConnection.performEditorAction(currentInputEditorInfo.actionId)
         }
 
         englishLayout = EnglishLayout(this)
@@ -180,11 +212,30 @@ class CustomLayoutKeyboard : InputMethodService() {
 
         setColor()
 
+
+
         return mainKeyboardView
     }
 
-    // todo set return key image according to EditorInfo
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+    override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
+        // change return key button image
+        when (editorInfo?.actionId) {
+            in searchIconActionList -> {
+                returnKeyBtn.setImageDrawable(returnKeyImageSearch)
+            }
+            in doneIconActionList -> {
+                returnKeyBtn.setImageDrawable(returnKeyImageDone)
+            }
+            in returnIconActionList -> {
+                returnKeyBtn.setImageDrawable(returnKeyImageReturn)
+            }
+            in tabIconActionList -> {
+                returnKeyBtn.setImageDrawable(returnKeyImageTab)
+            }
+            else -> {
+                returnKeyBtn.setImageDrawable(returnKeyImageForward)
+            }
+        }
         // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
     }
@@ -202,6 +253,8 @@ class CustomLayoutKeyboard : InputMethodService() {
     }
 
     fun deleteByWord(direction: Int): Boolean {
+        resetAndFinishComposing()
+        vibrate()
         var count = 2
         var textToDelete = ""
         when (direction) {
@@ -265,16 +318,20 @@ class CustomLayoutKeyboard : InputMethodService() {
         currentInputConnection.finishComposingText()
     }
 
-    private fun initColorTheme(colorTheme: String) {
+    fun vibrate() {
+        VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+    }
+
+    private fun initColorTheme(colorTheme: Int) {
         when (colorTheme) {
-            "light" -> {
+            0 -> { // light
                 this.
                 colorThemeMap["bg"] = getColor(R.color.light_theme_bg)
                 colorThemeMap["mainText"] =  getColor(R.color.black)
                 colorThemeMap["commonBtnBg"] = getColor(R.color.white)
                 colorThemeMap["subText"] = getColor(R.color.light_theme_subtext)
             }
-            "dark" -> {
+            1 -> { // dark
                 colorThemeMap["bg"] = getColor(R.color.dark_theme_bg)
                 colorThemeMap["mainText"] = getColor(R.color.white)
                 colorThemeMap["commonBtnBg"] = getColor(R.color.dark_theme_common_btn_bg)
@@ -283,7 +340,7 @@ class CustomLayoutKeyboard : InputMethodService() {
         }
     }
 
-    // todo round edges, button onTouch onDown effect
+    // todo round edges
     private fun setColor() {
         // background
         mainKeyboardView.setBackgroundColor(colorThemeMap.getValue("bg"))
@@ -301,7 +358,6 @@ class CustomLayoutKeyboard : InputMethodService() {
         spacebarBtn.setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))
         fullStopBtn.setTextColor(colorThemeMap.getValue("mainText"))
         fullStopBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-        returnKeyBtn.setTextColor(colorThemeMap.getValue("mainText"))
         returnKeyBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
 
         // language layouts
@@ -313,5 +369,11 @@ class CustomLayoutKeyboard : InputMethodService() {
         capsLockMode0Image?.setTint(colorThemeMap.getValue("mainText"))
         capsLockMode1Image?.setTint(colorThemeMap.getValue("mainText"))
         capsLockMode2Image?.setTint(colorThemeMap.getValue("mainText"))
+        backspaceImage?.setTint(colorThemeMap.getValue("mainText"))
+        returnKeyImageSearch?.setTint(colorThemeMap.getValue("mainText"))
+        returnKeyImageDone?.setTint(colorThemeMap.getValue("mainText"))
+        returnKeyImageReturn?.setTint(colorThemeMap.getValue("mainText"))
+        returnKeyImageTab?.setTint(colorThemeMap.getValue("mainText"))
+        returnKeyImageForward?.setTint(colorThemeMap.getValue("mainText"))
     }
 }

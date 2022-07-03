@@ -1,6 +1,6 @@
 package com.soobakjonmat.customlayoutkeyboard
 
-class HangulAssembler(private val mainActivity: CustomLayoutKeyboard) {
+class HangulAssembler(private val mainActivity: MainKeyboardService) {
     private var initConsFirst = 0.toChar()
     private var initConsSecond = 0.toChar()
     private var initConsIdx = -1

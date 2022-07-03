@@ -9,29 +9,29 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
-import com.soobakjonmat.customlayoutkeyboard.CustomLayoutKeyboard
+import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
 import java.util.*
 import kotlin.concurrent.timerTask
 
-class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
-    private val ctx = mainActivity.baseContext
-    private val mainKeyboardView = mainActivity.mainKeyboardView
-    private val resources: Resources = mainActivity.baseContext.resources
-    private val rapidTextDeleteInterval = mainActivity.rapidTextDeleteInterval
-    private val colorThemeMap = mainActivity.colorThemeMap
-    private val gestureMinDist = mainActivity.gestureMinDist
+class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
+    private val ctx = mainKeyboardService.baseContext
+    private val mainKeyboardView = mainKeyboardService.mainKeyboardView
+    private val resources: Resources = mainKeyboardService.baseContext.resources
+    private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
+    private val colorThemeMap = mainKeyboardService.colorThemeMap
+    private val gestureMinDist = mainKeyboardService.gestureMinDist
 
     private val btnList = mutableListOf<List<Button>>()
-    private val rowList = List(mainActivity.subTextLetterList.size) { LinearLayout(ctx) }
+    private val rowList = List(mainKeyboardService.subTextLetterList.size) { LinearLayout(ctx) }
     private val backspaceBtn = Button(ctx)
     private var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
-        for (i in mainActivity.subTextLetterList.indices) {
+        for (i in mainKeyboardService.subTextLetterList.indices) {
             // add buttons to btnList
-            btnList.add(List(mainActivity.subTextLetterList[i].size) { Button(ctx) })
+            btnList.add(List(mainKeyboardService.subTextLetterList[i].size) { Button(ctx) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -40,8 +40,8 @@ class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
             )
             rowList[i].orientation = LinearLayout.HORIZONTAL
             // create letter buttons and set attributes
-            for (j in mainActivity.subTextLetterList[i].indices) {
-                btnList[i][j].text = mainActivity.subTextLetterList[i][j]
+            for (j in mainKeyboardService.subTextLetterList[i].indices) {
+                btnList[i][j].text = mainKeyboardService.subTextLetterList[i][j]
                 btnList[i][j].setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,
@@ -58,12 +58,12 @@ class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
                     if (event.action == MotionEvent.ACTION_UP) {
                         // on fling keyboard from right to left
                         if (lastDownX - event.rawX > gestureMinDist) {
-                            mainActivity.deleteByWord(-1)
+                            mainKeyboardService.deleteByWord(-1)
                         }
                         else if (event.rawX - lastDownX > gestureMinDist) {
-                            mainActivity.deleteByWord(1)
+                            mainKeyboardService.deleteByWord(1)
                         } else {
-                            mainActivity.currentInputConnection.commitText(mainActivity.subTextLetterList[i][j], 1)
+                            mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
                         }
                     }
                     return@setOnTouchListener true
@@ -81,17 +81,17 @@ class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
             resources.getFloat(R.dimen.backspace_weight)
         )
         backspaceBtn.setOnClickListener {
-            if (mainActivity.currentInputConnection.getSelectedText(0).isNullOrEmpty()) {
+            if (mainKeyboardService.currentInputConnection.getSelectedText(0).isNullOrEmpty()) {
                 // no selection, so delete previous character
-                mainActivity.currentInputConnection.deleteSurroundingText(1, 0)
+                mainKeyboardService.currentInputConnection.deleteSurroundingText(1, 0)
             } else {
                 // delete the selection
-                mainActivity.currentInputConnection.commitText("", 1)
+                mainKeyboardService.currentInputConnection.commitText("", 1)
             }
         }
         backspaceBtn.setOnLongClickListener {
             Timer().schedule(timerTask {
-                if (!backspaceBtn.isPressed || !mainActivity.deleteByWord(-1)) {
+                if (!backspaceBtn.isPressed || !mainKeyboardService.deleteByWord(-1)) {
                     this.cancel()
                 }
             }, 0, rapidTextDeleteInterval)
@@ -108,8 +108,8 @@ class SpecialKeyLayout(private val mainActivity: CustomLayoutKeyboard) {
     }
 
     fun setColor() {
-        for (i in mainActivity.subTextLetterList.indices) {
-            for (j in mainActivity.subTextLetterList[i].indices) {
+        for (i in mainKeyboardService.subTextLetterList.indices) {
+            for (j in mainKeyboardService.subTextLetterList[i].indices) {
                 // letter buttons
                 btnList[i][j].setTextColor(colorThemeMap.getValue("mainText"))
                 btnList[i][j].setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))

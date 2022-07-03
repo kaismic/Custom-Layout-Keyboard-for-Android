@@ -6,8 +6,8 @@
     >
     <path
         android:strokeColor="#FFF"
-        android:strokeWidth="1"
+        android:strokeWidth="1.8"
         android:strokeLineJoin="round"
-        android:pathData="m 12 3, l 9 11, h -4.5, v 6, h -9, v -6, h -4.5, z"/>
+        android:pathData="m 12 1, l 11 13, h -6, v 9, h -10, v -9, h -6, z"/>
 
 </vector>
