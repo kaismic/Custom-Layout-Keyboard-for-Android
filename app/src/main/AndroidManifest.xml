@@ -6,7 +6,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/Theme.CustomLayoutKeyboard">
+        android:theme="@style/Theme.KeyboardBackground">
 
         <service android:name=".MainKeyboardService"
             android:label="@string/app_name"

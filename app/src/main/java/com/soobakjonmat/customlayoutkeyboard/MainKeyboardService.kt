@@ -1,14 +1,16 @@
 package com.soobakjonmat.customlayoutkeyboard
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.VibrationEffect
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
-import android.util.Log
 import android.util.TypedValue
+import android.view.ContextThemeWrapper
+
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.*
@@ -16,9 +18,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
-import androidx.preference.PreferenceFragmentCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.google.android.material.button.MaterialButton
 import com.soobakjonmat.customlayoutkeyboard.layout.*
 import kotlin.math.absoluteValue
 
@@ -29,22 +29,16 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var specialKeyLayout: SpecialKeyLayout
     val rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
-    private val colorTheme = 1
 
     private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
+    private val combinedNums = mutableListOf<SpannableString>()
 
     private val subTextRow1Letters = listOf("", "", "`", "\\", "|", "[", "]", "{", "}")
     private val subTextRow2Letters = listOf("", "", "", "", "_", "~", ":", ";", "\"", "'")
     private val subTextRow3Letters = listOf("×", "÷", "=", "+", "-", "*", "/")
     val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
-
-    val colorThemeMap = mutableMapOf(
-        "bg" to 0,
-        "mainText" to 0,
-        "commonBtnBg" to 0,
-        "subText" to 0,
-    )
+    var subtextColor = 0
 
     private lateinit var numBtns: List<Button>
     private lateinit var specialKeyBtn: Button
@@ -83,7 +77,7 @@ class MainKeyboardService : InputMethodService() {
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreateInputView(): View {
-        mainKeyboardView = layoutInflater.inflate(R.layout.main_layout, null) as LinearLayout
+        mainKeyboardView = layoutInflater.inflate(R.layout.main_keyboardview, null) as LinearLayout
 
         capsLockMode0Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_0, null)
         capsLockMode1Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_1, null)
@@ -95,11 +89,15 @@ class MainKeyboardService : InputMethodService() {
         returnKeyImageTab = VectorDrawableCompat.create(resources, R.drawable.ic_outline_keyboard_tab_24, null)
         returnKeyImageForward = VectorDrawableCompat.create(resources, R.drawable.ic_outline_arrow_forward_24, null)
 
-        initColorTheme(colorTheme)
-
         // number buttons
         val numberRow = mainKeyboardView.findViewById<LinearLayout>(R.id.number_row)
-        numBtns = List(numbers.size) { Button(this) }
+
+        numBtns = List(numbers.size) { Button(ContextThemeWrapper(this, R.style.Theme_LetterBtn)) }
+        subtextColor = if (isDarkTheme()) {
+            getColor(R.color.dark_theme_subtext)
+        } else {
+            getColor(R.color.light_theme_subtext)
+        }
 
         for (i in numbers.indices) {
             numBtns[i].layoutParams = LinearLayout.LayoutParams(
@@ -109,13 +107,13 @@ class MainKeyboardService : InputMethodService() {
             )
             numBtns[i].setPadding(0)
 
-            val text = SpannableString(numBtnSubTexts[i] + "\n" + numbers[i])
+            combinedNums.add(SpannableString(numBtnSubTexts[i] + "\n" + numbers[i]))
 
             if (numBtnSubTexts[i] != "") {
-                text.setSpan(ForegroundColorSpan(colorThemeMap.getValue("subText")), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                combinedNums[i].setSpan(ForegroundColorSpan(subtextColor), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            text.setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), text.length-1, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            numBtns[i].text = text
+            combinedNums[i].setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), combinedNums[i].length-1, combinedNums[i].length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            numBtns[i].text = combinedNums[i]
             numBtns[i].setOnLongClickListener {
                 vibrate()
                 resetAndFinishComposing()
@@ -210,10 +208,6 @@ class MainKeyboardService : InputMethodService() {
         // initially insert english layout on default
         englishLayout.insertLetterBtns()
 
-        setColor()
-
-
-
         return mainKeyboardView
     }
 
@@ -238,6 +232,8 @@ class MainKeyboardService : InputMethodService() {
         }
         // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
+        // set subtext color according to whether dark mode is turned on or not
+        updateSubtextColor()
     }
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
@@ -250,6 +246,42 @@ class MainKeyboardService : InputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         resetAndFinishComposing()
+    }
+
+    private fun isDarkTheme(): Boolean {
+        if (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) {
+            return true
+        }
+        return false
+    }
+
+    private fun updateSubtextColor() {
+        subtextColor = if (isDarkTheme()) {
+            if (subtextColor == getColor(R.color.dark_theme_subtext)) {
+                return
+            } else {
+                getColor(R.color.dark_theme_subtext)
+            }
+        } else {
+            if (subtextColor == getColor(R.color.dark_theme_subtext)) {
+                getColor(R.color.light_theme_subtext)
+            } else {
+                return
+            }
+        }
+        for (i in numbers.indices) {
+            if (numBtnSubTexts[i] != "") {
+                combinedNums[i].setSpan(
+                    ForegroundColorSpan(subtextColor),
+                    0,
+                    1,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            numBtns[i].text = combinedNums[i]
+        }
+        englishLayout.updateSubtextColor()
+        koreanLayout.updateSubtextColor()
     }
 
     fun deleteByWord(direction: Int): Boolean {
@@ -320,60 +352,5 @@ class MainKeyboardService : InputMethodService() {
 
     fun vibrate() {
         VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-    }
-
-    private fun initColorTheme(colorTheme: Int) {
-        when (colorTheme) {
-            0 -> { // light
-                this.
-                colorThemeMap["bg"] = getColor(R.color.light_theme_bg)
-                colorThemeMap["mainText"] =  getColor(R.color.black)
-                colorThemeMap["commonBtnBg"] = getColor(R.color.white)
-                colorThemeMap["subText"] = getColor(R.color.light_theme_subtext)
-            }
-            1 -> { // dark
-                colorThemeMap["bg"] = getColor(R.color.dark_theme_bg)
-                colorThemeMap["mainText"] = getColor(R.color.white)
-                colorThemeMap["commonBtnBg"] = getColor(R.color.dark_theme_common_btn_bg)
-                colorThemeMap["subText"] = getColor(R.color.dark_theme_subtext)
-            }
-        }
-    }
-
-    // todo round edges
-    private fun setColor() {
-        // background
-        mainKeyboardView.setBackgroundColor(colorThemeMap.getValue("bg"))
-        // number buttons
-        for (btn in numBtns) {
-            btn.setTextColor(colorThemeMap.getValue("mainText"))
-            btn.setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))
-        }
-        // control row
-        specialKeyBtn.setTextColor(colorThemeMap.getValue("mainText"))
-        specialKeyBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-        commaBtn.setTextColor(colorThemeMap.getValue("mainText"))
-        commaBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-        spacebarBtn.setTextColor(colorThemeMap.getValue("mainText"))
-        spacebarBtn.setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))
-        fullStopBtn.setTextColor(colorThemeMap.getValue("mainText"))
-        fullStopBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-        returnKeyBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-
-        // language layouts
-        englishLayout.setColor()
-        koreanLayout.setColor()
-        specialKeyLayout.setColor()
-
-        // caps lock image drawable
-        capsLockMode0Image?.setTint(colorThemeMap.getValue("mainText"))
-        capsLockMode1Image?.setTint(colorThemeMap.getValue("mainText"))
-        capsLockMode2Image?.setTint(colorThemeMap.getValue("mainText"))
-        backspaceImage?.setTint(colorThemeMap.getValue("mainText"))
-        returnKeyImageSearch?.setTint(colorThemeMap.getValue("mainText"))
-        returnKeyImageDone?.setTint(colorThemeMap.getValue("mainText"))
-        returnKeyImageReturn?.setTint(colorThemeMap.getValue("mainText"))
-        returnKeyImageTab?.setTint(colorThemeMap.getValue("mainText"))
-        returnKeyImageForward?.setTint(colorThemeMap.getValue("mainText"))
     }
 }

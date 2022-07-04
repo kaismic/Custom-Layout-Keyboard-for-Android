@@ -6,6 +6,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.view.ContextThemeWrapper
 
 import android.view.GestureDetector
 
@@ -25,25 +26,25 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
     private val mainKeyboardView = mainKeyboardService.mainKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
     private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
-    private val colorThemeMap = mainKeyboardService.colorThemeMap
     private val gestureMinDist = mainKeyboardService.gestureMinDist
 
     private val capsLockMode0Image = mainKeyboardService.capsLockMode0Image
     private val capsLockMode1Image = mainKeyboardService.capsLockMode1Image
     private val capsLockMode2Image = mainKeyboardService.capsLockMode2Image
-    private val backspaceImage = mainKeyboardService.backspaceImage
 
     private val row1Letters = listOf("q", "w", "f", "p", "g", "j", "l", "u", "y")
     private val row2Letters = listOf("a", "s", "d", "t", "r", "h", "e", "k", "i", "o")
     private val row3Letters = listOf("z", "x", "c", "v", "b", "n", "m")
     private val letterList = listOf(row1Letters, row2Letters, row3Letters)
 
+    private val combinedLetterList = List(letterList.size) { mutableListOf<SpannableString>() }
+
     private val btnList = mutableListOf<List<Button>>()
 
-    private val rowList = List(letterList.size) { LinearLayout(mainKeyboardService) }
+    private val rowList = List(letterList.size) { LinearLayout(mainKeyboardView.context) }
 
-    private val capsLockBtn = ImageButton(mainKeyboardService)
-    private val backspaceBtn = ImageButton(mainKeyboardService)
+    private val capsLockBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
+    private val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
     private var capsLockMode = 0
     private var lastDownX = 0f
@@ -52,7 +53,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
     fun init() {
         for (i in letterList.indices) {
             // add buttons to btnList
-            btnList.add(List(letterList[i].size) { Button(mainKeyboardService) })
+            btnList.add(List(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -60,12 +61,12 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                 1f
             )
             rowList[i].orientation = LinearLayout.HORIZONTAL
-            // create letter buttons and set attributes
+            // create letter buttons and set properties
             for (j in letterList[i].indices) {
                 val text = SpannableString(mainKeyboardService.subTextLetterList[i][j] + "\n" + letterList[i][j])
                 if (mainKeyboardService.subTextLetterList[i][j] != "") {
                     text.setSpan(
-                        ForegroundColorSpan(colorThemeMap.getValue("subText")),
+                        ForegroundColorSpan(mainKeyboardService.subtextColor),
                         0,
                         1,
                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -77,6 +78,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
+                combinedLetterList[i].add(text)
                 btnList[i][j].text = text
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,
@@ -134,7 +136,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         rowList[rowList.size-1].addView(capsLockBtn, 0)
 
         // set backspaceBtn attributes
-        backspaceBtn.setImageDrawable(backspaceImage)
+        backspaceBtn.setImageDrawable(mainKeyboardService.backspaceImage)
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
             0,
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -162,6 +164,21 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         rowList[rowList.size-1].addView(backspaceBtn, rowList[rowList.size-1].size)
     }
 
+    fun updateSubtextColor() {
+        for (i in letterList.indices) {
+            for (j in letterList[i].indices) {
+                if (mainKeyboardService.subTextLetterList[i][j] != "") {
+                    combinedLetterList[i][j].setSpan(
+                        ForegroundColorSpan(mainKeyboardService.subtextColor),
+                        0,
+                        1,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
+        }
+    }
+
     fun insertLetterBtns() {
         for (i in rowList.size - 1 downTo 0) {
             mainKeyboardView.addView(rowList[i], 1)
@@ -180,20 +197,6 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         for (i in letterList.indices) {
             for (j in letterList[i].indices) {
                 btnList[i][j].isAllCaps = false
-            }
-        }
-    }
-
-    fun setColor() {
-        for (i in letterList.indices) {
-            for (j in letterList[i].indices) {
-                // letter buttons
-                btnList[i][j].setTextColor(colorThemeMap.getValue("mainText"))
-                btnList[i][j].setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))
-                // capsLockBtn
-                capsLockBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-                // backspaceBtn
-                backspaceBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
             }
         }
     }

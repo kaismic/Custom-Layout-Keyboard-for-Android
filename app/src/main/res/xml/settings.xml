@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:title="@string/app_name">
+    >
     <Preference
         app:key="color_theme"
         app:title="Color theme"
@@ -15,4 +15,10 @@
     <SwitchPreferenceCompat
         app:key="vibration"
         app:title="Enable vibration"/>
+
+    <SeekBarPreference
+        app:title="Adjust Keyboard Height"
+        app:defaultValue="400dp"
+        app:min="300"
+        />
 </PreferenceScreen>

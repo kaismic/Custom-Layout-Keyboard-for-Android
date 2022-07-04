@@ -3,9 +3,11 @@ package com.soobakjonmat.customlayoutkeyboard.layout
 import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.util.TypedValue
+import android.view.ContextThemeWrapper
 
 import android.view.MotionEvent
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
@@ -15,23 +17,21 @@ import java.util.*
 import kotlin.concurrent.timerTask
 
 class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
-    private val ctx = mainKeyboardService.baseContext
     private val mainKeyboardView = mainKeyboardService.mainKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
     private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
-    private val colorThemeMap = mainKeyboardService.colorThemeMap
     private val gestureMinDist = mainKeyboardService.gestureMinDist
 
     private val btnList = mutableListOf<List<Button>>()
-    private val rowList = List(mainKeyboardService.subTextLetterList.size) { LinearLayout(ctx) }
-    private val backspaceBtn = Button(ctx)
+    private val rowList = List(mainKeyboardService.subTextLetterList.size) { LinearLayout(mainKeyboardView.context) }
+    private val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
     private var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
         for (i in mainKeyboardService.subTextLetterList.indices) {
             // add buttons to btnList
-            btnList.add(List(mainKeyboardService.subTextLetterList[i].size) { Button(ctx) })
+            btnList.add(List(mainKeyboardService.subTextLetterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -73,8 +73,7 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
             }
         }
         // set backspaceBtn attributes
-        backspaceBtn.text = resources.getString(R.string.backspace_symbol)
-        backspaceBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
+        backspaceBtn.setImageDrawable(mainKeyboardService.backspaceImage)
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
             0,
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -104,19 +103,6 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
     fun insertLetterBtns() {
         for (i in rowList.size - 1 downTo 0) {
             mainKeyboardView.addView(rowList[i], 1)
-        }
-    }
-
-    fun setColor() {
-        for (i in mainKeyboardService.subTextLetterList.indices) {
-            for (j in mainKeyboardService.subTextLetterList[i].indices) {
-                // letter buttons
-                btnList[i][j].setTextColor(colorThemeMap.getValue("mainText"))
-                btnList[i][j].setBackgroundColor(colorThemeMap.getValue("commonBtnBg"))
-                // backspaceBtn
-                backspaceBtn.setBackgroundColor(colorThemeMap.getValue("bg"))
-                backspaceBtn.setTextColor(colorThemeMap.getValue("mainText"))
-            }
         }
     }
 }

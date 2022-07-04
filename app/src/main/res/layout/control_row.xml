@@ -6,7 +6,8 @@
     android:layout_height="0dp"
     android:layout_weight="1"
     android:gravity="center"
-    tools:ignore="HardcodedText">
+    tools:ignore="HardcodedText"
+    android:theme="@style/Theme.KeyboardBackground">
     <Button
         android:id="@+id/special_key"
         android:layout_width="0dp"
@@ -15,6 +16,7 @@
         android:padding="0dp"
         android:text="!@#"
         android:textAllCaps="false"
+        android:theme="@style/Theme.ControlBtn"
         />
     <Button
         android:id="@+id/spacebar"
@@ -24,6 +26,7 @@
         android:textAllCaps="false"
         android:padding="0dp"
         android:text="@string/spacebar_text_english"
+        android:theme="@style/Theme.LetterBtn"
         />
     <Button
         android:id="@+id/comma"
@@ -33,6 +36,7 @@
         android:textAllCaps="false"
         android:padding="0dp"
         android:text=","
+        android:theme="@style/Theme.ControlBtn"
         />
     <Button
         android:id="@+id/full_stop"
@@ -41,12 +45,16 @@
         android:layout_height="match_parent"
         android:textAllCaps="false"
         android:padding="0dp"
-        android:text="." />
+        android:text="."
+        android:theme="@style/Theme.ControlBtn"
+        />
     <ImageButton
         android:id="@+id/return_key"
         android:layout_width="0dp"
         android:layout_weight="@dimen/return_key_weight"
         android:layout_height="match_parent"
         android:padding="0dp"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription"
+        android:theme="@style/Theme.ControlBtn"
+        />
 </LinearLayout>
