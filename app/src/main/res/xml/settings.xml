@@ -3,11 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
-    <SwitchPreferenceCompat
-        android:key="vibration"
-        android:title="Enable vibration"
-        />
-
     <SeekBarPreference
         android:key="long_click_delete_speed"
         android:title="Long click delete speed"

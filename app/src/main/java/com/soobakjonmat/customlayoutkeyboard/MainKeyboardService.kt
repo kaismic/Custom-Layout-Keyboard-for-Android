@@ -8,6 +8,8 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -43,8 +45,8 @@ class MainKeyboardService : InputMethodService() {
     private val combinedNums = mutableListOf<SpannableString>()
 
     private val subTextRow1Letters = listOf("", "", "`", "\\", "|", "[", "]", "{", "}")
-    private val subTextRow2Letters = listOf("", "", "", "", "_", "~", ":", ";", "\"", "'")
-    private val subTextRow3Letters = listOf("×", "÷", "=", "+", "-", "*", "/")
+    private val subTextRow2Letters = listOf("", "", "×", "÷", "_", "~", ":", ";", "\"", "'")
+    private val subTextRow3Letters = listOf("", "=", "+", "-", "*", "/", "?")
     val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
     var subtextColor = 0
 
@@ -83,14 +85,17 @@ class MainKeyboardService : InputMethodService() {
     private var lastDownSpacebarX = 0f
     private var lastCursorPos = 0
 
-    private var vibrate = true
+    private lateinit var vibrator: Vibrator
 
-    private val settingsKeyList = listOf("settings_vibration", "settings_long_click_delete_speed", "settings_keyboard_height")
+    private val settingsKeyList = listOf("settings_long_click_delete_speed", "settings_keyboard_height")
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
         mainKeyboardView = layoutInflater.inflate(R.layout.main_keyboardview, null) as LinearLayout
+
+        val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibrator = vm.defaultVibrator
 
         capsLockMode0Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_0, null)
         capsLockMode1Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_1, null)
@@ -157,14 +162,17 @@ class MainKeyboardService : InputMethodService() {
         }
         // spacebar
         spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
-        spacebarBtn.setOnTouchListener { _, motionEvent ->
+
+        spacebarBtn.setOnTouchListener { btn, motionEvent ->
             val action = motionEvent.action
             if (action == MotionEvent.ACTION_DOWN) {
+                btn.isPressed = true
                 vibrate()
                 lastDownSpacebarX = motionEvent.rawX
             } else if (action == MotionEvent.ACTION_MOVE) {
                 // todo show transition between layout on top. Use popup
             } else if (action == MotionEvent.ACTION_UP) {
+                btn.isPressed = false
                 // on scroll keyboard
                 if ((lastDownSpacebarX - motionEvent.rawX).absoluteValue > gestureMinDist) {
                     when (mode) {
@@ -183,6 +191,7 @@ class MainKeyboardService : InputMethodService() {
                 }
                 // on click
                 else {
+                    resetAndFinishComposing()
                     currentInputConnection.commitText(" ", 1)
                 }
             }
@@ -222,7 +231,6 @@ class MainKeyboardService : InputMethodService() {
         englishLayout.insertLetterBtns()
     }
 
-    @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreateInputView(): View {
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_SEND)
@@ -309,6 +317,7 @@ class MainKeyboardService : InputMethodService() {
         koreanLayout.updateSubtextColor()
     }
 
+    // todo fix behaviour on multiple spaces
     fun deleteByWord(direction: Int): Boolean {
         resetAndFinishComposing()
         vibrate()
@@ -376,20 +385,15 @@ class MainKeyboardService : InputMethodService() {
     }
 
     fun vibrate() {
-        if (vibrate) {
-            VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-        }
+        vibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     fun changeKeyboardSettings(intent: Intent?) {
         when (intent?.getStringExtra("key")) {
             settingsKeyList[0] -> {
-                vibrate = intent.getBooleanExtra("value", true)
-            }
-            settingsKeyList[1] -> {
                 rapidTextDeleteInterval = intent.getLongExtra("value", rapidTextDeleteInterval)
             }
-            settingsKeyList[2] -> {
+            settingsKeyList[1] -> {
                 mainKeyboardView.layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     intent.getIntExtra("value", mainKeyboardView.height)

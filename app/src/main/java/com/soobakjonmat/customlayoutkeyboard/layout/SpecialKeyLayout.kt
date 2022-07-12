@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
+import android.view.GestureDetector
 
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import androidx.core.view.marginLeft
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
@@ -24,7 +26,6 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
     private val btnList = mutableListOf<List<Button>>()
     private val rowList = List(mainKeyboardService.subTextLetterList.size) { LinearLayout(mainKeyboardView.context) }
     private val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
-    private var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
@@ -49,28 +50,24 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
                 )
                 btnList[i][j].isAllCaps = false
                 btnList[i][j].setPadding(0)
-
+                val gestureDetector = GestureDetector(mainKeyboardService, GestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
-                    if (event.action == MotionEvent.ACTION_DOWN) {
-                        lastDownX = event.rawX
-                    }
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        // on fling keyboard from right to left
-                        if (lastDownX - event.rawX > gestureMinDist) {
-                            mainKeyboardService.deleteByWord(-1)
-                        }
-                        else if (event.rawX - lastDownX > gestureMinDist) {
-                            mainKeyboardService.deleteByWord(1)
-                        } else {
-                            mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
-                        }
-                    }
-                    return@setOnTouchListener true
+                    gestureDetector.onTouchEvent(event)
                 }
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
             }
         }
+        // fill caps lock btn place
+        val substBtn = Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn))
+        substBtn.layoutParams = LinearLayout.LayoutParams(
+            0,
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            resources.getFloat(R.dimen.caps_lock_weight)
+        )
+        substBtn.setPadding(0)
+
+        rowList[rowList.size-1].addView(substBtn, 0)
         // set backspaceBtn attributes
         backspaceBtn.setImageDrawable(mainKeyboardService.backspaceImage)
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
@@ -102,6 +99,48 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
     fun insertLetterBtns() {
         for (i in rowList.size - 1 downTo 0) {
             mainKeyboardView.addView(rowList[i], 1)
+        }
+    }
+
+    private inner class GestureListener(
+        private val i: Int,
+        private val j: Int
+    ) : GestureDetector.OnGestureListener {
+
+        override fun onDown(event: MotionEvent): Boolean {
+            btnList[i][j].isPressed = true
+            mainKeyboardService.vibrate()
+            return true
+        }
+
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
+            btnList[i][j].isPressed = false
+            mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
+            return true
+        }
+
+        override fun onLongPress(event: MotionEvent) {
+
+        }
+
+        override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            if (p0.rawX - p1.rawX > gestureMinDist) {
+                mainKeyboardService.deleteByWord(-1)
+                return true
+            }
+            else if (p1.rawX - p0.rawX > gestureMinDist) {
+                mainKeyboardService.deleteByWord(1)
+                return true
+            }
+            return false
+        }
+
+        override fun onScroll(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            return true
+        }
+
+        override fun onShowPress(p0: MotionEvent?) {
+
         }
     }
 }

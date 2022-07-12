@@ -7,19 +7,16 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.view.ContextThemeWrapper
-
 import android.view.GestureDetector
-
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.core.view.size
-
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
-import java.util.Timer
+import java.util.*
 import kotlin.concurrent.timerTask
 
 class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
@@ -46,7 +43,6 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
     private val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
     private var capsLockMode = 0
-    private var lastDownX = 0f
 
     @SuppressLint("ClickableViewAccessibility")
     fun init() {
@@ -87,20 +83,9 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                 btnList[i][j].isAllCaps = false
                 btnList[i][j].setPadding(0)
 
-                val gestureDetector = GestureDetector(mainKeyboardService, SimpleGestureDetector(i, j))
+                val gestureDetector = GestureDetector(mainKeyboardService, GestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        // on fling keyboard from right to left
-                        if (lastDownX - event.rawX > gestureMinDist) {
-                            mainKeyboardService.deleteByWord(-1)
-                            return@setOnTouchListener true
-                        }
-                        else if (event.rawX - lastDownX > gestureMinDist) {
-                            mainKeyboardService.deleteByWord(1)
-                            return@setOnTouchListener true
-                        }
-                    }
-                    return@setOnTouchListener gestureDetector.onTouchEvent(event)
+                    gestureDetector.onTouchEvent(event)
                 }
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
@@ -200,36 +185,56 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         }
     }
 
-    private inner class SimpleGestureDetector(
+    private inner class GestureListener(
         private val i: Int,
         private val j: Int
-        ) : GestureDetector.SimpleOnGestureListener() {
+        ) : GestureDetector.OnGestureListener {
 
         override fun onDown(event: MotionEvent): Boolean {
-            this@EnglishLayout.mainKeyboardService.vibrate()
-            this@EnglishLayout.lastDownX = event.rawX
-            return super.onDown(event)
+            btnList[i][j].isPressed = true
+            mainKeyboardService.vibrate()
+            return true
         }
 
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            if (this@EnglishLayout.capsLockMode == 0) {
-                this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.letterList[i][j], 1)
+            btnList[i][j].isPressed = false
+            if (capsLockMode == 0) {
+                mainKeyboardService.currentInputConnection.commitText(letterList[i][j], 1)
             } else {
-                if (this@EnglishLayout.capsLockMode == 1) {
-                    this@EnglishLayout.setToLowercase()
-                    this@EnglishLayout.capsLockBtn.setImageDrawable(this@EnglishLayout.capsLockMode0Image)
-                    this@EnglishLayout.capsLockMode = 0
+                if (capsLockMode == 1) {
+                    setToLowercase()
+                    capsLockBtn.setImageDrawable(capsLockMode0Image)
+                    capsLockMode = 0
                 }
-                this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.letterList[i][j].uppercase(), 1)
+                mainKeyboardService.currentInputConnection.commitText(letterList[i][j].uppercase(), 1)
             }
-            return super.onSingleTapUp(event)
+            return true
         }
 
         override fun onLongPress(event: MotionEvent) {
-            this@EnglishLayout.mainKeyboardService.vibrate()
-            this@EnglishLayout.mainKeyboardService.resetAndFinishComposing()
-            this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.mainKeyboardService.subTextLetterList[i][j], 1)
-            return super.onLongPress(event)
+            mainKeyboardService.vibrate()
+            mainKeyboardService.resetAndFinishComposing()
+            mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
+        }
+
+        override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            if (p0.rawX - p1.rawX > gestureMinDist) {
+                mainKeyboardService.deleteByWord(-1)
+                return true
+            }
+            else if (p1.rawX - p0.rawX > gestureMinDist) {
+                mainKeyboardService.deleteByWord(1)
+                return true
+            }
+            return false
+        }
+
+        override fun onScroll(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            return true
+        }
+
+        override fun onShowPress(p0: MotionEvent?) {
+
         }
     }
 }
