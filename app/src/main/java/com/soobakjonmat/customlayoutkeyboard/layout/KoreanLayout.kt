@@ -24,7 +24,6 @@ import kotlin.collections.List
 class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
     private val mainKeyboardView = mainKeyboardService.mainKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
-    private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
     private val gestureMinDist = mainKeyboardService.gestureMinDist
     val hangulAssembler = HangulAssembler(mainKeyboardService)
 
@@ -107,7 +106,7 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
                 )
                 btnList[i][j].setPadding(0)
 
-                val gestureDetector = GestureDetector(mainKeyboardService, SimpleGestureDetector(mainKeyboardService, this, i, j))
+                val gestureDetector = GestureDetector(mainKeyboardService, SimpleGestureDetector(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_UP) {
                         // on fling keyboard from right to left
@@ -173,7 +172,7 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
                 if (!backspaceBtn.isPressed || !mainKeyboardService.deleteByWord(-1)) {
                     this.cancel()
                 }
-            }, 0, rapidTextDeleteInterval)
+            }, 0, mainKeyboardService.rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }
         rowList[rowList.size-1].addView(backspaceBtn, rowList[rowList.size-1].size)
@@ -216,35 +215,33 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
         }
     }
 
-    private class SimpleGestureDetector(
-        private val mainActivity: MainKeyboardService,
-        private val layout: KoreanLayout,
+    private inner class SimpleGestureDetector(
         private val i: Int,
         private val j: Int
     ) : GestureDetector.SimpleOnGestureListener() {
 
         override fun onDown(event: MotionEvent): Boolean {
-            mainActivity.vibrate()
-            layout.lastDownX = event.rawX
+            this@KoreanLayout.mainKeyboardService.vibrate()
+            this@KoreanLayout.lastDownX = event.rawX
             return super.onDown(event)
         }
 
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            if (layout.capsLockMode == 1) {
-                layout.setToLowercase()
-                layout.capsLockBtn.setImageDrawable(layout.capsLockMode0Image)
-                layout.capsLockMode = 0
-                layout.hangulAssembler.commitText(layout.capsLetterList[i][j])
+            if (this@KoreanLayout.capsLockMode == 1) {
+                this@KoreanLayout.setToLowercase()
+                this@KoreanLayout.capsLockBtn.setImageDrawable(this@KoreanLayout.capsLockMode0Image)
+                this@KoreanLayout.capsLockMode = 0
+                this@KoreanLayout.hangulAssembler.commitText(this@KoreanLayout.capsLetterList[i][j])
             }
             else {
-                layout.hangulAssembler.commitText(layout.letterList[i][j])
+                this@KoreanLayout.hangulAssembler.commitText(this@KoreanLayout.letterList[i][j])
             }
             return super.onSingleTapUp(event)
         }
 
         override fun onLongPress(event: MotionEvent) {
-            mainActivity.resetAndFinishComposing()
-            mainActivity.currentInputConnection.commitText(mainActivity.subTextLetterList[i][j], 1)
+            this@KoreanLayout.mainKeyboardService.resetAndFinishComposing()
+            this@KoreanLayout.mainKeyboardService.currentInputConnection.commitText(this@KoreanLayout.mainKeyboardService.subTextLetterList[i][j], 1)
             return super.onLongPress(event)
         }
     }

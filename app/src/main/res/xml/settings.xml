@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     >
-    <Preference
-        app:key="color_theme"
-        app:title="Color theme"
-        app:summary="Change color theme"/>
-
-    <Preference
-        app:key="long_click_delete_speed"
-        app:title="Long click delete speed"
-        app:summary="Adjust the interval when deleting by long pressing delete key"/>
-
     <SwitchPreferenceCompat
-        app:key="vibration"
-        app:title="Enable vibration"/>
+        android:key="vibration"
+        android:title="Enable vibration"
+        />
 
     <SeekBarPreference
-        app:title="Adjust Keyboard Height"
-        app:defaultValue="400dp"
-        app:min="300"
+        android:key="long_click_delete_speed"
+        android:title="Long click delete speed"
+        android:summary="Adjust the interval when deleting by long pressing delete key"
+        android:min="50"
+        android:max="500"
+        android:defaultValue="200"
+        app:showSeekBarValue="true"
+        />
+
+    <SeekBarPreference
+        android:key="keyboard_height"
+        android:title="Adjust Keyboard Height"
+        app:showSeekBarValue="true"
         />
 </PreferenceScreen>
+

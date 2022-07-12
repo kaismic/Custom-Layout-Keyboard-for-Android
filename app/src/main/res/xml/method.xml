@@ -2,5 +2,6 @@
 <input-method
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:settingsActivity="com.soobakjonmat.customlayoutkeyboard.KeyboardSetting"
-    android:name="@string/app_name">
+    android:name="@string/app_name"
+    >
 </input-method>

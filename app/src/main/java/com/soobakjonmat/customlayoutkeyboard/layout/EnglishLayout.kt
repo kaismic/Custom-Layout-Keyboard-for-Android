@@ -25,7 +25,6 @@ import kotlin.concurrent.timerTask
 class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
     private val mainKeyboardView = mainKeyboardService.mainKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
-    private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
     private val gestureMinDist = mainKeyboardService.gestureMinDist
 
     private val capsLockMode0Image = mainKeyboardService.capsLockMode0Image
@@ -88,7 +87,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                 btnList[i][j].isAllCaps = false
                 btnList[i][j].setPadding(0)
 
-                val gestureDetector = GestureDetector(mainKeyboardService, SimpleGestureDetector(mainKeyboardService, this, i, j))
+                val gestureDetector = GestureDetector(mainKeyboardService, SimpleGestureDetector(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
                     if (event.action == MotionEvent.ACTION_UP) {
                         // on fling keyboard from right to left
@@ -157,7 +156,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                 if (!backspaceBtn.isPressed || !mainKeyboardService.deleteByWord(-1)) {
                     this.cancel()
                 }
-            }, 0, rapidTextDeleteInterval)
+            }, 0, mainKeyboardService.rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }
 
@@ -201,37 +200,35 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         }
     }
 
-    private class SimpleGestureDetector(
-        private val mainActivity: MainKeyboardService,
-        private val layout: EnglishLayout,
+    private inner class SimpleGestureDetector(
         private val i: Int,
         private val j: Int
         ) : GestureDetector.SimpleOnGestureListener() {
 
         override fun onDown(event: MotionEvent): Boolean {
-            mainActivity.vibrate()
-            layout.lastDownX = event.rawX
+            this@EnglishLayout.mainKeyboardService.vibrate()
+            this@EnglishLayout.lastDownX = event.rawX
             return super.onDown(event)
         }
 
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            if (layout.capsLockMode == 0) {
-                mainActivity.currentInputConnection.commitText(layout.letterList[i][j], 1)
+            if (this@EnglishLayout.capsLockMode == 0) {
+                this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.letterList[i][j], 1)
             } else {
-                if (layout.capsLockMode == 1) {
-                    layout.setToLowercase()
-                    layout.capsLockBtn.setImageDrawable(layout.capsLockMode0Image)
-                    layout.capsLockMode = 0
+                if (this@EnglishLayout.capsLockMode == 1) {
+                    this@EnglishLayout.setToLowercase()
+                    this@EnglishLayout.capsLockBtn.setImageDrawable(this@EnglishLayout.capsLockMode0Image)
+                    this@EnglishLayout.capsLockMode = 0
                 }
-                mainActivity.currentInputConnection.commitText(layout.letterList[i][j].uppercase(), 1)
+                this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.letterList[i][j].uppercase(), 1)
             }
             return super.onSingleTapUp(event)
         }
 
         override fun onLongPress(event: MotionEvent) {
-            mainActivity.vibrate()
-            mainActivity.resetAndFinishComposing()
-            mainActivity.currentInputConnection.commitText(mainActivity.subTextLetterList[i][j], 1)
+            this@EnglishLayout.mainKeyboardService.vibrate()
+            this@EnglishLayout.mainKeyboardService.resetAndFinishComposing()
+            this@EnglishLayout.mainKeyboardService.currentInputConnection.commitText(this@EnglishLayout.mainKeyboardService.subTextLetterList[i][j], 1)
             return super.onLongPress(event)
         }
     }

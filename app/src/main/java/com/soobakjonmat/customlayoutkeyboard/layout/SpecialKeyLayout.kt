@@ -19,7 +19,6 @@ import kotlin.concurrent.timerTask
 class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
     private val mainKeyboardView = mainKeyboardService.mainKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
-    private val rapidTextDeleteInterval = mainKeyboardService.rapidTextDeleteInterval
     private val gestureMinDist = mainKeyboardService.gestureMinDist
 
     private val btnList = mutableListOf<List<Button>>()
@@ -93,7 +92,7 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
                 if (!backspaceBtn.isPressed || !mainKeyboardService.deleteByWord(-1)) {
                     this.cancel()
                 }
-            }, 0, rapidTextDeleteInterval)
+            }, 0, mainKeyboardService.rapidTextDeleteInterval)
             return@setOnLongClickListener true
         }
 

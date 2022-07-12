@@ -1,6 +1,10 @@
 package com.soobakjonmat.customlayoutkeyboard
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.VibrationEffect
@@ -10,16 +14,20 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
-
 import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.*
+import android.view.inputmethod.CursorAnchorInfo
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.soobakjonmat.customlayoutkeyboard.layout.*
+import com.soobakjonmat.customlayoutkeyboard.layout.EnglishLayout
+import com.soobakjonmat.customlayoutkeyboard.layout.KoreanLayout
+import com.soobakjonmat.customlayoutkeyboard.layout.SpecialKeyLayout
 import kotlin.math.absoluteValue
 
 class MainKeyboardService : InputMethodService() {
@@ -27,7 +35,7 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
     private lateinit var specialKeyLayout: SpecialKeyLayout
-    val rapidTextDeleteInterval: Long = 200 // in milliseconds
+    var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
 
     private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
@@ -75,8 +83,13 @@ class MainKeyboardService : InputMethodService() {
     private var lastDownSpacebarX = 0f
     private var lastCursorPos = 0
 
+    private var vibrate = true
+
+    private val settingsKeyList = listOf("settings_vibration", "settings_long_click_delete_speed", "settings_keyboard_height")
+
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
-    override fun onCreateInputView(): View {
+    override fun onCreate() {
+        super.onCreate()
         mainKeyboardView = layoutInflater.inflate(R.layout.main_keyboardview, null) as LinearLayout
 
         capsLockMode0Image = VectorDrawableCompat.create(resources, R.drawable.caps_lock_mode_0, null)
@@ -207,11 +220,23 @@ class MainKeyboardService : InputMethodService() {
         specialKeyLayout.init()
         // initially insert english layout on default
         englishLayout.insertLetterBtns()
+    }
 
+    @SuppressLint("InflateParams", "ClickableViewAccessibility")
+    override fun onCreateInputView(): View {
+        val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_SEND)
+        registerReceiver(MyReceiver(), filter)
+
+        val intent = Intent()
+        intent.action = Intent.ACTION_SEND
+        intent.putExtra("Custom Layout Keyboard Created", "Custom Layout Keyboard Created")
+        baseContext?.sendBroadcast(intent)
         return mainKeyboardView
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(editorInfo, restarting)
         // change return key button image
         when (editorInfo?.actionId) {
             in searchIconActionList -> {
@@ -351,6 +376,31 @@ class MainKeyboardService : InputMethodService() {
     }
 
     fun vibrate() {
-        VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+        if (vibrate) {
+            VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+        }
+    }
+
+    fun changeKeyboardSettings(intent: Intent?) {
+        when (intent?.getStringExtra("key")) {
+            settingsKeyList[0] -> {
+                vibrate = intent.getBooleanExtra("value", true)
+            }
+            settingsKeyList[1] -> {
+                rapidTextDeleteInterval = intent.getLongExtra("value", rapidTextDeleteInterval)
+            }
+            settingsKeyList[2] -> {
+                mainKeyboardView.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    intent.getIntExtra("value", mainKeyboardView.height)
+                )
+            }
+        }
+    }
+
+    inner class MyReceiver : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, p1: Intent?) {
+            changeKeyboardSettings(p1)
+        }
     }
 }
