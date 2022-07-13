@@ -8,7 +8,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SeekBarPreference
-import androidx.preference.SwitchPreferenceCompat
+
 
 class KeyboardSetting : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,6 +18,11 @@ class KeyboardSetting : AppCompatActivity() {
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_SEND)
         registerReceiver(mySettingsFragment.MyReceiver(), filter)
+
+        val intent = Intent()
+        intent.action = Intent.ACTION_SEND
+        intent.putExtra("Is Custom Layout Keyboard Created?", true)
+        baseContext?.sendBroadcast(intent)
 
         setContentView(R.layout.settings_container)
 
@@ -64,14 +69,11 @@ class KeyboardSetting : AppCompatActivity() {
                 if (p1?.hasExtra("Custom Layout Keyboard Created") == true) {
                     longClickDeleteSpeedPreference.callChangeListener(longClickDeleteSpeedPreference.value)
                     keyboardHeightPreference.callChangeListener(keyboardHeightPreference.value)
+                    this@MySettingsFragment.context?.unregisterReceiver(this)
                 }
             }
         }
     }
 }
 
-/* todo settings:
-
-if possible and have a lot of time: key layout change
-
- */
+// if possible and i have a lot of time: key layout change

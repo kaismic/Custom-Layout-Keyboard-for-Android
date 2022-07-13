@@ -231,18 +231,6 @@ class MainKeyboardService : InputMethodService() {
         englishLayout.insertLetterBtns()
     }
 
-    override fun onCreateInputView(): View {
-        val filter = IntentFilter()
-        filter.addAction(Intent.ACTION_SEND)
-        registerReceiver(MyReceiver(), filter)
-
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND
-        intent.putExtra("Custom Layout Keyboard Created", "Custom Layout Keyboard Created")
-        baseContext?.sendBroadcast(intent)
-        return mainKeyboardView
-    }
-
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
         // change return key button image
@@ -317,16 +305,22 @@ class MainKeyboardService : InputMethodService() {
         koreanLayout.updateSubtextColor()
     }
 
-    // todo fix behaviour on multiple spaces
     fun deleteByWord(direction: Int): Boolean {
         resetAndFinishComposing()
         vibrate()
-        var count = 2
+        var count = 1
         var textToDelete = ""
         when (direction) {
             -1 -> {
                 if (currentInputConnection.getTextBeforeCursor(count, 0).isNullOrEmpty()) {
                     return false
+                }
+                if (currentInputConnection.getTextBeforeCursor(count, 0)?.first() == ' ') {
+                    while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() == ' ' &&
+                        currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
+                        textToDelete = currentInputConnection.getTextBeforeCursor(count, 0).toString()
+                        count++
+                    }
                 }
                 while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() != ' ' &&
                     currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
@@ -337,9 +331,15 @@ class MainKeyboardService : InputMethodService() {
                 return true
             }
             1 -> {
-
                 if (currentInputConnection.getTextAfterCursor(count, 0).isNullOrEmpty()) {
                     return false
+                }
+                if (currentInputConnection.getTextAfterCursor(count, 0)?.last() == ' ') {
+                    while (currentInputConnection.getTextAfterCursor(count, 0)?.last() == ' ' &&
+                        currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
+                        textToDelete = currentInputConnection.getTextAfterCursor(count, 0).toString()
+                        count++
+                    }
                 }
                 while (currentInputConnection.getTextAfterCursor(count, 0)?.last() != ' ' &&
                     currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
@@ -402,9 +402,29 @@ class MainKeyboardService : InputMethodService() {
         }
     }
 
+    override fun onCreateInputView(): View {
+        val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_SEND)
+        registerReceiver(MyReceiver(), filter)
+
+        sendHandshakeIntent()
+        return mainKeyboardView
+    }
+
+    private fun sendHandshakeIntent() {
+        val intent = Intent()
+        intent.action = Intent.ACTION_SEND
+        intent.putExtra("Custom Layout Keyboard Created", true)
+        baseContext?.sendBroadcast(intent)
+    }
+
     inner class MyReceiver : BroadcastReceiver() {
         override fun onReceive(p0: Context?, p1: Intent?) {
-            changeKeyboardSettings(p1)
+            if (p1?.hasExtra("Is Custom Layout Keyboard Created?") == true) {
+                sendHandshakeIntent()
+            } else {
+                changeKeyboardSettings(p1)
+            }
         }
     }
 }
