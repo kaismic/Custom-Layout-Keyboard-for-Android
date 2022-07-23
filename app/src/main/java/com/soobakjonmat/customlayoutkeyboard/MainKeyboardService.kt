@@ -39,13 +39,14 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var specialKeyLayout: SpecialKeyLayout
     var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
+    private val deleteByWordSeps = listOf(' ', '\n')
 
     private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
     private val combinedNums = mutableListOf<SpannableString>()
 
-    private val subTextRow1Letters = listOf("", "", "`", "\\", "|", "[", "]", "{", "}")
-    private val subTextRow2Letters = listOf("", "", "×", "÷", "_", "~", ":", ";", "\"", "'")
+    private val subTextRow1Letters = listOf("!", "(", ")", "\\", "|", "[", "]", "{", "}")
+    private val subTextRow2Letters = listOf("", "`", "×", "÷", "_", "~", ":", ";", "\"", "'")
     private val subTextRow3Letters = listOf("", "=", "+", "-", "*", "/", "?")
     val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
     var subtextColor = 0
@@ -75,11 +76,13 @@ class MainKeyboardService : InputMethodService() {
         EditorInfo.IME_ACTION_DONE
     )
     private val returnIconActionList = listOf(
-        EditorInfo.IME_ACTION_SEND
+        EditorInfo.IME_ACTION_SEND,
+        EditorInfo.IME_ACTION_NONE
     )
     private val tabIconActionList = listOf(
         EditorInfo.IME_ACTION_NEXT
     )
+    private var currIMEOptions = 0
 
     private var mode = 1
     private var lastDownSpacebarX = 0f
@@ -88,6 +91,9 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var vibrator: Vibrator
 
     private val settingsKeyList = listOf("settings_long_click_delete_speed", "settings_keyboard_height")
+
+    // todo keyboard button popup when pressed and on long click change text on the popup
+    // todo word suggestion
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreate() {
@@ -218,7 +224,12 @@ class MainKeyboardService : InputMethodService() {
         returnKeyBtn.setOnClickListener {
             vibrate()
             resetAndFinishComposing()
-            currentInputConnection.performEditorAction(currentInputEditorInfo.actionId)
+            if (currIMEOptions == EditorInfo.IME_ACTION_NONE ||
+                (currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
+                currentInputConnection.commitText("\n", 1)
+            } else {
+                currentInputConnection.performEditorAction(currIMEOptions and EditorInfo.IME_MASK_ACTION)
+            }
         }
 
         englishLayout = EnglishLayout(this)
@@ -233,8 +244,9 @@ class MainKeyboardService : InputMethodService() {
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
+        currIMEOptions = currentInputEditorInfo.imeOptions
         // change return key button image
-        when (editorInfo?.actionId) {
+        when (currIMEOptions and EditorInfo.IME_MASK_ACTION) {
             in searchIconActionList -> {
                 returnKeyBtn.setImageDrawable(returnKeyImageSearch)
             }
@@ -250,6 +262,10 @@ class MainKeyboardService : InputMethodService() {
             else -> {
                 returnKeyBtn.setImageDrawable(returnKeyImageForward)
             }
+        }
+        if (currIMEOptions == EditorInfo.IME_ACTION_NONE ||
+            (currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
+            returnKeyBtn.setImageDrawable(returnKeyImageReturn)
         }
         // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
@@ -315,14 +331,14 @@ class MainKeyboardService : InputMethodService() {
                 if (currentInputConnection.getTextBeforeCursor(count, 0).isNullOrEmpty()) {
                     return false
                 }
-                if (currentInputConnection.getTextBeforeCursor(count, 0)?.first() == ' ') {
-                    while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() == ' ' &&
+                if (currentInputConnection.getTextBeforeCursor(count, 0)?.first() in deleteByWordSeps) {
+                    while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() in deleteByWordSeps &&
                         currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
                         textToDelete = currentInputConnection.getTextBeforeCursor(count, 0).toString()
                         count++
                     }
                 }
-                while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() != ' ' &&
+                while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() !in deleteByWordSeps &&
                     currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
                     textToDelete = currentInputConnection.getTextBeforeCursor(count, 0).toString()
                     count++
@@ -334,14 +350,14 @@ class MainKeyboardService : InputMethodService() {
                 if (currentInputConnection.getTextAfterCursor(count, 0).isNullOrEmpty()) {
                     return false
                 }
-                if (currentInputConnection.getTextAfterCursor(count, 0)?.last() == ' ') {
-                    while (currentInputConnection.getTextAfterCursor(count, 0)?.last() == ' ' &&
+                if (currentInputConnection.getTextAfterCursor(count, 0)?.last() in deleteByWordSeps) {
+                    while (currentInputConnection.getTextAfterCursor(count, 0)?.last() in deleteByWordSeps &&
                         currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
                         textToDelete = currentInputConnection.getTextAfterCursor(count, 0).toString()
                         count++
                     }
                 }
-                while (currentInputConnection.getTextAfterCursor(count, 0)?.last() != ' ' &&
+                while (currentInputConnection.getTextAfterCursor(count, 0)?.last() !in deleteByWordSeps &&
                     currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
                     textToDelete = currentInputConnection.getTextAfterCursor(count, 0).toString()
                     count++
@@ -416,12 +432,14 @@ class MainKeyboardService : InputMethodService() {
         intent.action = Intent.ACTION_SEND
         intent.putExtra("Custom Layout Keyboard Created", true)
         baseContext?.sendBroadcast(intent)
+
     }
 
     inner class MyReceiver : BroadcastReceiver() {
         override fun onReceive(p0: Context?, p1: Intent?) {
             if (p1?.hasExtra("Is Custom Layout Keyboard Created?") == true) {
                 sendHandshakeIntent()
+                unregisterReceiver(this)
             } else {
                 changeKeyboardSettings(p1)
             }
