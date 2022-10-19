@@ -2,9 +2,9 @@
 
 ## Preview:
 <div style="display: flex">
-    <img src="images/app_screenshot_1.png" style="width: 30%; height: 30%;">
-    <img src="images/app_screenshot_2.png" style="width: 30%; height: 30%;">
-    <img src="images/app_screenshot_3.png" style="width: 30%; height: 30%;">
+    <img src="images/screenshot_0.png" style="width: 30%; height: 30%;">
+    <img src="images/screenshot_1.png" style="width: 30%; height: 30%;">
+    <img src="images/screenshot_2.png" style="width: 30%; height: 30%;">
 </div>
 
 This app is made for personal usage but anyone can modify and use the app if they want.
