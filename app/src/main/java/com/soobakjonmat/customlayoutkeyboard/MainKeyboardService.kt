@@ -10,10 +10,12 @@ import android.inputmethodservice.InputMethodService
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.MotionEvent
@@ -29,6 +31,7 @@ import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.soobakjonmat.customlayoutkeyboard.layout.EnglishLayout
 import com.soobakjonmat.customlayoutkeyboard.layout.KoreanLayout
+import com.soobakjonmat.customlayoutkeyboard.layout.PhoneNumberLayout
 import com.soobakjonmat.customlayoutkeyboard.layout.SpecialKeyLayout
 import kotlin.math.absoluteValue
 
@@ -37,6 +40,7 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
     private lateinit var specialKeyLayout: SpecialKeyLayout
+    private lateinit var phoneNumberLayout: PhoneNumberLayout
     var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
     private val deleteByWordSeps = listOf(' ', '\n')
@@ -67,6 +71,7 @@ class MainKeyboardService : InputMethodService() {
     private var returnKeyImageForward: VectorDrawableCompat? = null
     private var returnKeyImageReturn: VectorDrawableCompat? = null
     private var returnKeyImageTab: VectorDrawableCompat? = null
+    var currReturnKeyImage: VectorDrawableCompat? = null
 
     private val searchIconActionList = listOf(
         EditorInfo.IME_ACTION_SEARCH,
@@ -82,7 +87,7 @@ class MainKeyboardService : InputMethodService() {
     private val tabIconActionList = listOf(
         EditorInfo.IME_ACTION_NEXT
     )
-    private var currIMEOptions = 0
+    var currIMEOptions = 0
 
     private var mode = 1
     private var lastDownSpacebarX = 0f
@@ -238,6 +243,9 @@ class MainKeyboardService : InputMethodService() {
         koreanLayout.init()
         specialKeyLayout = SpecialKeyLayout(this)
         specialKeyLayout.init()
+        phoneNumberLayout = PhoneNumberLayout(this)
+        phoneNumberLayout.init()
+
         // initially insert english layout on default
         englishLayout.insertLetterBtns()
     }
@@ -245,28 +253,35 @@ class MainKeyboardService : InputMethodService() {
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
         currIMEOptions = currentInputEditorInfo.imeOptions
+        // if inputType is phone number
+        if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE) {
+            phoneNumberLayout.returnKeyBtn.setImageDrawable(currReturnKeyImage)
+        }
         // change return key button image
         when (currIMEOptions and EditorInfo.IME_MASK_ACTION) {
             in searchIconActionList -> {
-                returnKeyBtn.setImageDrawable(returnKeyImageSearch)
+                currReturnKeyImage = returnKeyImageSearch
             }
             in doneIconActionList -> {
-                returnKeyBtn.setImageDrawable(returnKeyImageDone)
+                currReturnKeyImage = returnKeyImageDone
             }
             in returnIconActionList -> {
-                returnKeyBtn.setImageDrawable(returnKeyImageReturn)
+                currReturnKeyImage = returnKeyImageReturn
             }
             in tabIconActionList -> {
-                returnKeyBtn.setImageDrawable(returnKeyImageTab)
+                currReturnKeyImage = returnKeyImageTab
             }
             else -> {
-                returnKeyBtn.setImageDrawable(returnKeyImageForward)
+                currReturnKeyImage = returnKeyImageForward
             }
         }
         if (currIMEOptions == EditorInfo.IME_ACTION_NONE ||
             (currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
-            returnKeyBtn.setImageDrawable(returnKeyImageReturn)
+            currReturnKeyImage = returnKeyImageReturn
         }
+
+        returnKeyBtn.setImageDrawable(currReturnKeyImage)
+
         // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
         // set subtext color according to whether dark mode is turned on or not
@@ -274,7 +289,7 @@ class MainKeyboardService : InputMethodService() {
     }
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
-        val currPos = cursorAnchorInfo.selectionEnd
+        val currPos = cursorAnchorInfo.selectionStart
         if ((currPos != lastCursorPos + 1 || !koreanLayout.hangulAssembler.cursorMovedBySystem) && currPos != lastCursorPos) {
             resetAndFinishComposing()
         }
@@ -378,6 +393,7 @@ class MainKeyboardService : InputMethodService() {
             mainKeyboardView.removeViewAt(1)
         }
         when (mode) {
+            // special key layout
             0 -> {
                 specialKeyLayout.insertLetterBtns()
                 spacebarBtn.text = getString(R.string.spacebar_text_special_key)
@@ -392,11 +408,17 @@ class MainKeyboardService : InputMethodService() {
                 koreanLayout.insertLetterBtns()
                 spacebarBtn.text = getString(R.string.spacebar_text_korean)
             }
+            // phone number layout
+            3 -> {
+
+            }
         }
     }
 
     fun resetAndFinishComposing() {
-        koreanLayout.hangulAssembler.reset()
+        if (mode == 2) {
+            koreanLayout.hangulAssembler.reset()
+        }
         currentInputConnection.finishComposingText()
     }
 
@@ -439,7 +461,6 @@ class MainKeyboardService : InputMethodService() {
         override fun onReceive(p0: Context?, p1: Intent?) {
             if (p1?.hasExtra("Is Custom Layout Keyboard Created?") == true) {
                 sendHandshakeIntent()
-                unregisterReceiver(this)
             } else {
                 changeKeyboardSettings(p1)
             }
