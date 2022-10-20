@@ -82,7 +82,8 @@ class MainKeyboardService : InputMethodService() {
     )
     private val returnIconActionList = listOf(
         EditorInfo.IME_ACTION_SEND,
-        EditorInfo.IME_ACTION_NONE
+        EditorInfo.IME_ACTION_NONE,
+        EditorInfo.IME_ACTION_UNSPECIFIED,
     )
     private val tabIconActionList = listOf(
         EditorInfo.IME_ACTION_NEXT
@@ -229,7 +230,7 @@ class MainKeyboardService : InputMethodService() {
         returnKeyBtn.setOnClickListener {
             vibrate()
             resetAndFinishComposing()
-            if (currIMEOptions == EditorInfo.IME_ACTION_NONE ||
+            if ((currIMEOptions and EditorInfo.IME_MASK_ACTION) in returnIconActionList ||
                 (currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
                 currentInputConnection.commitText("\n", 1)
             } else {
@@ -254,9 +255,12 @@ class MainKeyboardService : InputMethodService() {
         super.onStartInputView(editorInfo, restarting)
         currIMEOptions = currentInputEditorInfo.imeOptions
         // if inputType is phone number
+        // uncomment after PhoneNumberLayout.kt is completed
+        /*
         if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE) {
             phoneNumberLayout.returnKeyBtn.setImageDrawable(currReturnKeyImage)
         }
+         */
         // change return key button image
         when (currIMEOptions and EditorInfo.IME_MASK_ACTION) {
             in searchIconActionList -> {
@@ -275,8 +279,7 @@ class MainKeyboardService : InputMethodService() {
                 currReturnKeyImage = returnKeyImageForward
             }
         }
-        if (currIMEOptions == EditorInfo.IME_ACTION_NONE ||
-            (currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
+        if ((currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
             currReturnKeyImage = returnKeyImageReturn
         }
 
