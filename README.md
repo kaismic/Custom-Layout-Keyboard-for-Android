@@ -7,7 +7,9 @@
     <img src="images/screenshot_2.png" style="width: 30%; height: 30%;">
 </div>
 
-This app is made for personal usage but anyone can modify and use the app if they want.
+Anyone can modify and use this app for personal use.
+
+No commercial use.
 
 I built this app because there were no good android keyboards which allowed me to use a custom key layout of my own.
 
