@@ -10,10 +10,9 @@ import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
-import java.util.*
 
 class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
-    private val mainKeyboardView = mainKeyboardService.mainKeyboardView
+    private val phoneNumKeyboardView = mainKeyboardService.phoneNumKeyboardView
     private val resources: Resources = mainKeyboardService.baseContext.resources
 
     private val row1Letters = listOf("1", "2", "3", "(", ")")
@@ -25,9 +24,9 @@ class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
     private val btnList = mutableListOf<List<Button>>()
 
     private val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
-    val returnKeyBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
+    private val returnKeyBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
-    private val rowList = List(letterList.size) { LinearLayout(mainKeyboardView.context) }
+    private val rowList = List(letterList.size) { LinearLayout(phoneNumKeyboardView.context) }
 
     fun init() {
         for (i in letterList.indices) {
@@ -49,6 +48,7 @@ class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
                 btnList[i][j].isAllCaps = false
                 btnList[i][j].setPadding(0)
                 btnList[i][j].setOnClickListener{
+                    mainKeyboardService.vibrate()
                     if (letterList[i][j] == "⎵") {
                         mainKeyboardService.currentInputConnection.commitText(" ", 1)
                         return@setOnClickListener
@@ -65,7 +65,7 @@ class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
         backspaceBtn.layoutParams = LinearLayout.LayoutParams(
             0,
             LinearLayout.LayoutParams.MATCH_PARENT,
-            resources.getFloat(R.dimen.backspace_weight)
+            1f
         )
         backspaceBtn.setOnClickListener {
             mainKeyboardService.vibrate()
@@ -80,10 +80,24 @@ class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
         rowList[rowList.size-2].addView(backspaceBtn, rowList[rowList.size-2].size)
 
         // return key
+        returnKeyBtn.setImageDrawable(mainKeyboardService.currReturnKeyImage)
         returnKeyBtn.setOnClickListener {
             mainKeyboardService.vibrate()
             mainKeyboardService.currentInputConnection.performEditorAction(mainKeyboardService.currIMEOptions and EditorInfo.IME_MASK_ACTION)
         }
+        returnKeyBtn.layoutParams = LinearLayout.LayoutParams(
+            0,
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            1f
+        )
         rowList[rowList.size-1].addView(returnKeyBtn, rowList[rowList.size-1].size)
+
+        for (row in rowList) {
+            phoneNumKeyboardView.addView(row)
+        }
+    }
+
+    fun updateReturnKeyImage() {
+        returnKeyBtn.setImageDrawable(mainKeyboardService.currReturnKeyImage)
     }
 }

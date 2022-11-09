@@ -27,6 +27,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import androidx.core.view.children
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.soobakjonmat.customlayoutkeyboard.layout.EnglishLayout
@@ -36,7 +37,9 @@ import com.soobakjonmat.customlayoutkeyboard.layout.SpecialKeyLayout
 import kotlin.math.absoluteValue
 
 class MainKeyboardService : InputMethodService() {
+    lateinit var keyboardRoot: FrameLayout
     lateinit var mainKeyboardView: LinearLayout
+    lateinit var phoneNumKeyboardView: LinearLayout
     private lateinit var englishLayout: EnglishLayout
     private lateinit var koreanLayout: KoreanLayout
     private lateinit var specialKeyLayout: SpecialKeyLayout
@@ -104,7 +107,9 @@ class MainKeyboardService : InputMethodService() {
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
+
         mainKeyboardView = layoutInflater.inflate(R.layout.main_keyboardview, null) as LinearLayout
+        phoneNumKeyboardView = layoutInflater.inflate(R.layout.phone_number_keyboardview, null) as LinearLayout
 
         val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibrator = vm.defaultVibrator
@@ -254,13 +259,7 @@ class MainKeyboardService : InputMethodService() {
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(editorInfo, restarting)
         currIMEOptions = currentInputEditorInfo.imeOptions
-        // if inputType is phone number
-        // uncomment after PhoneNumberLayout.kt is completed
-        /*
-        if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE) {
-            phoneNumberLayout.returnKeyBtn.setImageDrawable(currReturnKeyImage)
-        }
-         */
+
         // change return key button image
         when (currIMEOptions and EditorInfo.IME_MASK_ACTION) {
             in searchIconActionList -> {
@@ -284,6 +283,25 @@ class MainKeyboardService : InputMethodService() {
         }
 
         returnKeyBtn.setImageDrawable(currReturnKeyImage)
+
+        keyboardRoot = if (mainKeyboardView.parent != null) {
+            mainKeyboardView.parent as FrameLayout
+        } else {
+            phoneNumKeyboardView.parent as FrameLayout
+        }
+        // if inputType is phone number
+        if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE) {
+            if (keyboardRoot.children.contains(mainKeyboardView)) {
+                keyboardRoot.removeView(mainKeyboardView)
+                phoneNumberLayout.updateReturnKeyImage()
+                setInputView(phoneNumKeyboardView)
+            }
+        } else {
+            if (keyboardRoot.children.contains(phoneNumKeyboardView)) {
+                keyboardRoot.removeView(phoneNumKeyboardView)
+                setInputView(mainKeyboardView)
+            }
+        }
 
         // call onUpdateCursorAnchorInfo() whenever cursor/anchor position is changed
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
@@ -411,10 +429,6 @@ class MainKeyboardService : InputMethodService() {
                 koreanLayout.insertLetterBtns()
                 spacebarBtn.text = getString(R.string.spacebar_text_korean)
             }
-            // phone number layout
-            3 -> {
-
-            }
         }
     }
 
@@ -439,6 +453,10 @@ class MainKeyboardService : InputMethodService() {
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     intent.getIntExtra("value", mainKeyboardView.height)
                 )
+                phoneNumKeyboardView.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    intent.getIntExtra("value", mainKeyboardView.height)
+                )
             }
         }
     }
@@ -448,25 +466,12 @@ class MainKeyboardService : InputMethodService() {
         filter.addAction(Intent.ACTION_SEND)
         registerReceiver(MyReceiver(), filter)
 
-        sendHandshakeIntent()
         return mainKeyboardView
-    }
-
-    private fun sendHandshakeIntent() {
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND
-        intent.putExtra("Custom Layout Keyboard Created", true)
-        baseContext?.sendBroadcast(intent)
-
     }
 
     inner class MyReceiver : BroadcastReceiver() {
         override fun onReceive(p0: Context?, p1: Intent?) {
-            if (p1?.hasExtra("Is Custom Layout Keyboard Created?") == true) {
-                sendHandshakeIntent()
-            } else {
-                changeKeyboardSettings(p1)
-            }
+            changeKeyboardSettings(p1)
         }
     }
 }
