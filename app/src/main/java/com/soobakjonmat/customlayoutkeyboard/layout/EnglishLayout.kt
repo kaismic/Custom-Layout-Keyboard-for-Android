@@ -16,7 +16,7 @@ import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
-import java.util.*
+import java.util.Timer
 import kotlin.concurrent.timerTask
 
 class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
@@ -83,7 +83,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
                 btnList[i][j].isAllCaps = false
                 btnList[i][j].setPadding(0)
 
-                val gestureDetector = GestureDetector(mainKeyboardService, GestureListener(i, j))
+                val gestureDetector = GestureDetector(mainKeyboardService, EnglishGestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
                     gestureDetector.onTouchEvent(event)
                 }
@@ -185,7 +185,7 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
         }
     }
 
-    private inner class GestureListener(
+    private inner class EnglishGestureListener(
         private val i: Int,
         private val j: Int
         ) : GestureDetector.OnGestureListener {
@@ -233,8 +233,8 @@ class EnglishLayout(private val mainKeyboardService: MainKeyboardService) {
             return true
         }
 
-        override fun onShowPress(p0: MotionEvent?) {
-
+        override fun onShowPress(p0: MotionEvent) {
+            // todo keyboard button popup when pressed and on long click change text on the popup
         }
     }
 }

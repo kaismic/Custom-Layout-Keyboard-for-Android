@@ -15,7 +15,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
-import android.util.Log
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.MotionEvent
@@ -37,7 +36,7 @@ import com.soobakjonmat.customlayoutkeyboard.layout.SpecialKeyLayout
 import kotlin.math.absoluteValue
 
 class MainKeyboardService : InputMethodService() {
-    lateinit var keyboardRoot: FrameLayout
+    private lateinit var keyboardRoot: FrameLayout
     lateinit var mainKeyboardView: LinearLayout
     lateinit var phoneNumKeyboardView: LinearLayout
     private lateinit var englishLayout: EnglishLayout
@@ -100,8 +99,6 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var vibrator: Vibrator
 
     private val settingsKeyList = listOf("settings_long_click_delete_speed", "settings_keyboard_height")
-
-    // todo keyboard button popup when pressed and on long click change text on the popup
     // todo word suggestion
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")

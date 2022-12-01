@@ -105,7 +105,7 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
                 )
                 btnList[i][j].setPadding(0)
 
-                val gestureDetector = GestureDetector(mainKeyboardService, GestureListener(i, j))
+                val gestureDetector = GestureDetector(mainKeyboardService, KoreanGestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
                     gestureDetector.onTouchEvent(event)
                 }
@@ -204,7 +204,7 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
         }
     }
 
-    private inner class GestureListener(
+    private inner class KoreanGestureListener(
         private val i: Int,
         private val j: Int
     ) : GestureDetector.OnGestureListener {
@@ -251,8 +251,8 @@ class KoreanLayout(private val mainKeyboardService: MainKeyboardService) {
             return true
         }
 
-        override fun onShowPress(p0: MotionEvent?) {
-
+        override fun onShowPress(p0: MotionEvent) {
+            // todo keyboard button popup when pressed and on long click change text on the popup
         }
     }
 }

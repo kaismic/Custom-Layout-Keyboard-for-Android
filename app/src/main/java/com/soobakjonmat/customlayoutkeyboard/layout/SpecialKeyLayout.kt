@@ -5,12 +5,10 @@ import android.content.res.Resources
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.GestureDetector
-
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import androidx.core.view.marginLeft
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
@@ -76,6 +74,7 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
             resources.getFloat(R.dimen.backspace_weight)
         )
         backspaceBtn.setOnClickListener {
+            mainKeyboardService.vibrate()
             if (mainKeyboardService.currentInputConnection.getSelectedText(0).isNullOrEmpty()) {
                 // no selection, so delete previous character
                 mainKeyboardService.currentInputConnection.deleteSurroundingText(1, 0)
@@ -139,7 +138,7 @@ class SpecialKeyLayout(private val mainKeyboardService: MainKeyboardService) {
             return true
         }
 
-        override fun onShowPress(p0: MotionEvent?) {
+        override fun onShowPress(p0: MotionEvent) {
 
         }
     }
