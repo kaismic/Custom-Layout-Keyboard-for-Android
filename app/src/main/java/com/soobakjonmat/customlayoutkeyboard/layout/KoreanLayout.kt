@@ -163,7 +163,7 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
 
     private inner class KoreanGestureListener(i: Int, j: Int) : LanguageGestureListener(i, j) {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            btnList[i][j].isPressed = false
+            super.onSingleTapUp(event)
             if (capsLockMode == 1) {
                 setToLowercase()
                 capsLockBtn.setImageDrawable(capsLockMode0Image)

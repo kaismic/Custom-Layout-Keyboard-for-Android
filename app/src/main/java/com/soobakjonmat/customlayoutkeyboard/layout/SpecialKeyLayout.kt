@@ -79,10 +79,9 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
         rowList[rowList.size-1].addView(backspaceBtn, rowList[rowList.size-1].size)
     }
 
-
     private inner class SpecialKeyGestureListener(i: Int, j: Int) : KeyboardGestureListener(i, j) {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            btnList[i][j].isPressed = false
+            super.onSingleTapUp(event)
             mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
             return true
         }

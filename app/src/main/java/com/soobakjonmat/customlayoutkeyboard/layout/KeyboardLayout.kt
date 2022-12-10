@@ -43,6 +43,11 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
         protected val i: Int,
         protected val j: Int
     ) : GestureDetector.OnGestureListener {
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
+            btnList[i][j].performClick()
+            btnList[i][j].isPressed = false
+            return true
+        }
 
         override fun onDown(event: MotionEvent): Boolean {
             btnList[i][j].isPressed = true

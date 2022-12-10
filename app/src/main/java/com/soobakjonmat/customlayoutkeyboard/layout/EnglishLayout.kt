@@ -143,7 +143,7 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
 
     private inner class EnglishGestureListener(i: Int, j: Int) : LanguageGestureListener(i, j) {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            btnList[i][j].isPressed = false
+            super.onSingleTapUp(event)
             if (capsLockMode == 0) {
                 mainKeyboardService.currentInputConnection.commitText(letterList[i][j], 1)
             } else {
