@@ -8,5 +8,5 @@
 
     <string name="spacebar_text_english">&lt; English &gt;</string>
     <string name="spacebar_text_korean">&lt; 한국어 &gt;</string>
-    <string name="spacebar_text_special_key">&lt; ⎵ &gt;</string>
+    <string name="spacebar_text_special_key">&lt; !@# &gt;</string>
 </resources>

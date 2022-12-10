@@ -99,6 +99,7 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var vibrator: Vibrator
 
     private val settingsKeyList = listOf("settings_long_click_delete_speed", "settings_keyboard_height")
+    private val myReceiver = MyReceiver()
     // todo word suggestion
 
     @SuppressLint("InflateParams", "ClickableViewAccessibility")
@@ -461,7 +462,7 @@ class MainKeyboardService : InputMethodService() {
     override fun onCreateInputView(): View {
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_SEND)
-        registerReceiver(MyReceiver(), filter)
+        registerReceiver(myReceiver, filter)
 
         return mainKeyboardView
     }
@@ -470,5 +471,10 @@ class MainKeyboardService : InputMethodService() {
         override fun onReceive(p0: Context?, p1: Intent?) {
             changeKeyboardSettings(p1)
         }
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(myReceiver)
+        super.onDestroy()
     }
 }
