@@ -7,13 +7,16 @@
     <img src="images/screenshot_2.png" style="width: 30%; height: 30%; padding:0% 1%">
 </div>
 
+## Layout Hierarchy
+<img src="images/layout_hierarchy_diagram.png">
+
 Anyone can modify and use this app for personal use.
 
 No commercial use.
 
 I built this app because there were no good android keyboards which allowed me to use a custom key layout of my own.
 
-Layout is based on the Colemak layout but slightly different.
+Default layout is based on the Colemak layout but slightly different.
 
 Created based on Microsoft SwiftKey.
 
