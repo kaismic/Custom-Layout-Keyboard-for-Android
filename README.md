@@ -22,7 +22,8 @@ Created based on Microsoft SwiftKey.
 
 Implements most of the basic functionality of Microsoft SwiftKey such as swipe on spacebar to change language, swipe on the letters to delete by word and long click to input subtexts.
 
-To change the letter key layout, change the strings in 'letterList' in "EnglishLayout.kt" or "KoreanLayout.kt"
+To change the letter key layout, change the strings in 'letterList' in "EnglishLayout.kt" or "KoreanLayout.kt".
+
 To change the special key layout, change the strings in 'subTextLetterList' in "MainKeyboardService.kt".
 
 Current Supported Languages:
