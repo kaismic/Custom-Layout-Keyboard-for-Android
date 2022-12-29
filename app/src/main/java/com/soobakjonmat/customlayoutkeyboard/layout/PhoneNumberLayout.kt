@@ -1,5 +1,6 @@
 package com.soobakjonmat.customlayoutkeyboard.layout
 
+import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -13,11 +14,12 @@ import com.soobakjonmat.customlayoutkeyboard.R
 class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
     private val phoneNumKeyboardView = mainKeyboardService.phoneNumKeyboardView
 
-    private val row1Letters = listOf("1", "2", "3", "(", ")")
-    private val row2Letters = listOf("4", "5", "6", "+", "-")
-    private val row3Letters = listOf("7", "8", "9", "." /*delete*/)
-    private val row4Letters = listOf("*", "0", "#", "⎵" /*enter*/)
-    private val letterList = listOf(row1Letters, row2Letters, row3Letters, row4Letters)
+    private val letterList = listOf(
+        listOf("1", "2", "3", "(", ")"),
+        listOf("4", "5", "6", "+", "-"),
+        listOf("7", "8", "9", "." /*delete*/),
+        listOf("*", "0", "#", "⎵" /*enter*/)
+    )
 
     private val btnList = mutableListOf<List<Button>>()
 
@@ -38,6 +40,7 @@ class PhoneNumberLayout (private val mainKeyboardService: MainKeyboardService) {
             )
             for (j in letterList[i].indices) {
                 btnList[i][j].text = letterList[i][j]
+                btnList[i][j].setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f)
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.MATCH_PARENT,
