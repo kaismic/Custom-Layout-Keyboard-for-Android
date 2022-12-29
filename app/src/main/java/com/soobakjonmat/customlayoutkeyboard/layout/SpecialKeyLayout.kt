@@ -14,15 +14,18 @@ import com.soobakjonmat.customlayoutkeyboard.R
 import java.util.*
 
 class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayout(mainKeyboardService) {
+
+    val subTextLetterList = mainKeyboardService.subTextLetterList
+
     @SuppressLint("ClickableViewAccessibility")
     override fun init() {
         super.init()
 
-        rowList = List(mainKeyboardService.subTextLetterList.size) { LinearLayout(mainKeyboardView.context) }
+        rowList = Array(subTextLetterList.size) { LinearLayout(mainKeyboardView.context) }
 
-        for (i in mainKeyboardService.subTextLetterList.indices) {
-            // add buttons to btnList
-            btnList.add(List(mainKeyboardService.subTextLetterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+        for (i in subTextLetterList.indices) {
+            // initialise btnList
+            btnList.add(Array(subTextLetterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -31,8 +34,8 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
             )
             rowList[i].orientation = LinearLayout.HORIZONTAL
             // create letter buttons and set attributes
-            for (j in mainKeyboardService.subTextLetterList[i].indices) {
-                btnList[i][j].text = mainKeyboardService.subTextLetterList[i][j]
+            for (j in subTextLetterList[i].indices) {
+                btnList[i][j].text = subTextLetterList[i][j]
                 btnList[i][j].setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,
@@ -82,7 +85,7 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
     private inner class SpecialKeyGestureListener(i: Int, j: Int) : KeyboardGestureListener(i, j) {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
             super.onSingleTapUp(event)
-            mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)
+            mainKeyboardService.currentInputConnection.commitText(subTextLetterList[i][j], 1)
             return true
         }
 

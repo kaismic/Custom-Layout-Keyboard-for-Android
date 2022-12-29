@@ -21,16 +21,18 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
     override fun init() {
         super.init()
 
-        row1Letters = listOf("q", "w", "f", "p", "g", "j", "l", "u", "y")
-        row2Letters = listOf("a", "s", "d", "t", "r", "h", "e", "k", "i", "o")
-        row3Letters = listOf("z", "x", "c", "v", "b", "n", "m")
-        letterList = listOf(row1Letters, row2Letters, row3Letters)
-        rowList = List(letterList.size) { LinearLayout(mainKeyboardView.context) }
-        combinedLetterList = List(letterList.size) { mutableListOf() }
+        letterList = listOf(
+            arrayOf("q", "w", "f", "p", "g", "j", "l", "u", "y"),
+            arrayOf("a", "s", "d", "t", "r", "h", "e", "k", "i", "o"),
+            arrayOf("z", "x", "c", "v", "b", "n", "m")
+        )
+        rowList = Array(letterList.size) { LinearLayout(mainKeyboardView.context) }
 
         for (i in letterList.indices) {
-            // add buttons to btnList
-            btnList.add(List(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+            // initialise btnList
+            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+            // initialise combinedLetterList
+            combinedLetterList.add(Array(letterList[i].size) { SpannableString("") })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -41,7 +43,7 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
             // create letter buttons and set attributes
             for (j in letterList[i].indices) {
                 val text = SpannableString(mainKeyboardService.subTextLetterList[i][j] + "\n" + letterList[i][j])
-                if (mainKeyboardService.subTextLetterList[i][j] != "") {
+                if (mainKeyboardService.subTextLetterList[i][j].isNotEmpty()) {
                     // set subtext size
                     text.setSpan(
                         ForegroundColorSpan(mainKeyboardService.subtextColor),
@@ -64,7 +66,7 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
-                combinedLetterList[i].add(text)
+                combinedLetterList[i][j] = text
                 btnList[i][j].text = text
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,

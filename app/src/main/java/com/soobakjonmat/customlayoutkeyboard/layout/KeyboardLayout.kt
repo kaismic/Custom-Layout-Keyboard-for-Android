@@ -17,8 +17,9 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
     protected val resources: Resources = mainKeyboardService.baseContext.resources
     protected val gestureMinDist = mainKeyboardService.gestureMinDist
 
-    protected val btnList = mutableListOf<List<Button>>()
-    protected lateinit var rowList: List<LinearLayout>
+    protected val btnList = mutableListOf<Array<Button>>()
+    protected lateinit var rowList: Array<LinearLayout>
+
     protected val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
     open fun init() {

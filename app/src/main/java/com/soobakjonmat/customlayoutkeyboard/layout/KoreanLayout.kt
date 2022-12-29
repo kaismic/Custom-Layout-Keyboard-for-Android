@@ -16,32 +16,33 @@ import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.HangulAssembler
 import com.soobakjonmat.customlayoutkeyboard.R
-import kotlin.collections.List
 
 class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(mainKeyboardService) {
     val hangulAssembler = HangulAssembler(mainKeyboardService)
-
-    private val capsRow1Letters = listOf("ㅃ", "ㅉ", "ㄸ", "ㄲ", "ㅆ", "ㅛ", "ㅕ", "ㅑ", "ㅒ")
-    private val capsRow2Letters = listOf("ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ", "ㅖ")
-    private val capsRow3Letters = listOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
-    private val capsLetterList = listOf(capsRow1Letters, capsRow2Letters, capsRow3Letters)
-
-    private val combinedCapsLetterList = List(capsLetterList.size) { mutableListOf<SpannableString>() }
+    private val capsLetterList = listOf(
+        listOf("ㅃ", "ㅉ", "ㄸ", "ㄲ", "ㅆ", "ㅛ", "ㅕ", "ㅑ", "ㅒ"),
+        listOf("ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ", "ㅖ"),
+        listOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
+    )
+    private val combinedCapsLetterList = mutableListOf<Array<SpannableString>>()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun init() {
         super.init()
 
-        row1Letters = listOf("ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ", "ㅛ", "ㅕ", "ㅑ", "ㅐ")
-        row2Letters = listOf("ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ", "ㅔ")
-        row3Letters = listOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
-        letterList = listOf(row1Letters, row2Letters, row3Letters)
-        rowList = List(letterList.size) { LinearLayout(mainKeyboardView.context) }
-        combinedLetterList = List(letterList.size) { mutableListOf() }
+        letterList = listOf(
+            arrayOf("ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ", "ㅛ", "ㅕ", "ㅑ", "ㅐ"),
+            arrayOf("ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ", "ㅔ"),
+            arrayOf("ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ")
+        )
+        rowList = Array(letterList.size) { LinearLayout(mainKeyboardView.context) }
 
         for (i in letterList.indices) {
             // add buttons to btnList
-            btnList.add(List(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+            // initialise combinedLetterList and combinedCapsLetterList
+            combinedLetterList.add(Array(letterList[i].size) { SpannableString("") })
+            combinedCapsLetterList.add(Array(letterList[i].size) { SpannableString("") })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -53,7 +54,7 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
             for (j in letterList[i].indices) {
                 val text = SpannableString(mainKeyboardService.subTextLetterList[i][j] + "\n" + letterList[i][j])
                 val capsText = SpannableString(mainKeyboardService.subTextLetterList[i][j] + "\n" + capsLetterList[i][j])
-                if (mainKeyboardService.subTextLetterList[i][j] != "") {
+                if (mainKeyboardService.subTextLetterList[i][j].isNotEmpty()) {
                     // set subtext size
                     text.setSpan(
                         ForegroundColorSpan(mainKeyboardService.subtextColor),
@@ -88,8 +89,8 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
                     text.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
-                combinedLetterList[i].add(text)
-                combinedCapsLetterList[i].add(capsText)
+                combinedLetterList[i][j] = text
+                combinedCapsLetterList[i][j] = capsText
                 btnList[i][j].text = text
                 btnList[i][j].layoutParams = LinearLayout.LayoutParams(
                     0,

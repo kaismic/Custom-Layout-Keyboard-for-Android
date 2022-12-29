@@ -51,10 +51,11 @@ class MainKeyboardService : InputMethodService() {
     private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
     private val combinedNums = mutableListOf<SpannableString>()
 
-    private val subTextRow1Letters = listOf("!", "(", ")", "\\", "|", "[", "]", "{", "}")
-    private val subTextRow2Letters = listOf("", "`", "×", "÷", "_", "~", ":", ";", "\"", "'")
-    private val subTextRow3Letters = listOf("", "=", "+", "-", "*", "/", "?")
-    val subTextLetterList = listOf(subTextRow1Letters, subTextRow2Letters, subTextRow3Letters)
+    val subTextLetterList = listOf(
+        arrayOf("!", "(", ")", "\\", "|", "[", "]", "{", "}"),
+        arrayOf("", "`", "×", "÷", "_", "~", ":", ";", "\"", "'"),
+        arrayOf("", "=", "+", "-", "*", "/", "?")
+    )
     var subtextColor = 0
 
     private lateinit var numBtns: List<Button>
@@ -142,7 +143,7 @@ class MainKeyboardService : InputMethodService() {
 
             combinedNums.add(SpannableString(numBtnSubTexts[i] + "\n" + numbers[i]))
 
-            if (numBtnSubTexts[i] != "") {
+            if (numBtnSubTexts[i].isNotEmpty()) {
                 combinedNums[i].setSpan(ForegroundColorSpan(subtextColor), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             combinedNums[i].setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), combinedNums[i].length-1, combinedNums[i].length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -341,7 +342,7 @@ class MainKeyboardService : InputMethodService() {
             }
         }
         for (i in numbers.indices) {
-            if (numBtnSubTexts[i] != "") {
+            if (numBtnSubTexts[i].isNotEmpty()) {
                 combinedNums[i].setSpan(
                     ForegroundColorSpan(subtextColor),
                     0,

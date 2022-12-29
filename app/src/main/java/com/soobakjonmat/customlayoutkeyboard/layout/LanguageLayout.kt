@@ -15,13 +15,8 @@ abstract class LanguageLayout(mainKeyboardService: MainKeyboardService) : Keyboa
     protected val capsLockMode1Image = mainKeyboardService.capsLockMode1Image
     protected val capsLockMode2Image = mainKeyboardService.capsLockMode2Image
 
-    protected lateinit var row1Letters: List<String>
-    protected lateinit var row2Letters: List<String>
-    protected lateinit var row3Letters: List<String>
-    protected lateinit var letterList: List<List<String>>
-
-    protected lateinit var combinedLetterList: List<MutableList<SpannableString>>
-
+    protected lateinit var letterList: List<Array<String>>
+    protected val combinedLetterList = mutableListOf<Array<SpannableString>>()
 
     protected val capsLockBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
@@ -41,7 +36,7 @@ abstract class LanguageLayout(mainKeyboardService: MainKeyboardService) : Keyboa
     fun updateSubtextColor() {
         for (i in letterList.indices) {
             for (j in letterList[i].indices) {
-                if (mainKeyboardService.subTextLetterList[i][j] != "") {
+                if (mainKeyboardService.subTextLetterList[i][j].isNotEmpty()) {
                     combinedLetterList[i][j].setSpan(
                         ForegroundColorSpan(mainKeyboardService.subtextColor),
                         0,
