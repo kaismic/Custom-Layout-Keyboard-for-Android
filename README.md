@@ -22,7 +22,8 @@ Created based on Microsoft SwiftKey.
 
 Implements most of the basic functionality of Microsoft SwiftKey such as swipe on spacebar to change language, swipe on the letters to delete by word and long click to input subtexts.
 
-To change the key layout, change the strings of the "row1/2/3Letters" in the kotlin files "EnglishLayout.kt" or "KoreanLayout.kt" in "app/src/main/java/com/soobakjonmat/customlayoutkeyboard/layout" folder or "subTextRow1/2/3Letters" MainActivity.kt to change subtext layouts.
+To change the letter key layout, change the strings in 'letterList' in "EnglishLayout.kt" or "KoreanLayout.kt"
+To change the special key layout, change the strings in 'subTextLetterList' in "MainKeyboardService.kt".
 
 Current Supported Languages:
 - English
