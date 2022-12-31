@@ -6,16 +6,21 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.TypefaceSpan
+import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.HangulAssembler
 import com.soobakjonmat.customlayoutkeyboard.R
+import java.util.*
 
 class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(mainKeyboardService) {
     val hangulAssembler = HangulAssembler(mainKeyboardService)
@@ -38,10 +43,11 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
         rowList = Array(letterList.size) { LinearLayout(mainKeyboardView.context) }
 
         for (i in letterList.indices) {
-            // add buttons to btnList
-            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
-            // initialise combinedLetterList and combinedCapsLetterList
+            // initialise btnList, combinedLetterList, previewPopupList
+            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_LetterBtn)) })
             combinedLetterList.add(Array(letterList[i].size) { SpannableString("") })
+            previewPopupList.add(Array(letterList[i].size) { PopupWindow(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_TransparentBackground)) })
+            // initialise combinedCapsLetterList
             combinedCapsLetterList.add(Array(letterList[i].size) { SpannableString("") })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
@@ -101,11 +107,25 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
 
                 val gestureDetector = GestureDetector(mainKeyboardService, KoreanGestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        previewPopupList[i][j].dismiss()
+                        (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                    }
                     gestureDetector.onTouchEvent(event)
                 }
 
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
+
+                // key preview popup
+                previewPopupList[i][j].isTouchable = false
+                previewPopupList[i][j].contentView = TextView(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView))
+                (previewPopupList[i][j].contentView as TextView).background = ResourcesCompat.getDrawable(resources, R.drawable.preview_popup_background, ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView).theme)
+                (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                (previewPopupList[i][j].contentView as TextView).elevation = 8f
+                (previewPopupList[i][j].contentView as TextView).setPadding(resources.getInteger(R.integer.korean_preview_popup_text_padding), 0, 0, 0)
+                (previewPopupList[i][j].contentView as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.preview_popup_text_size))
+                previewPopupList[i][j].setBackgroundDrawable(null)
             }
         }
 
@@ -118,9 +138,18 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
                     capsLockBtn.setImageDrawable(capsLockMode1Image)
                 }
                 1 -> {
+                    capsLockMode = 2
+                    capsLockBtn.setImageDrawable(capsLockMode2Image)
+                }
+                2 -> {
                     setToLowercase()
                     capsLockMode = 0
                     capsLockBtn.setImageDrawable(capsLockMode0Image)
+                    for (i in letterList.indices) {
+                        for (j in letterList[i].indices) {
+                            (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                        }
+                    }
                 }
             }
         }
@@ -165,14 +194,20 @@ class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(ma
     private inner class KoreanGestureListener(i: Int, j: Int) : LanguageGestureListener(i, j) {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
             super.onSingleTapUp(event)
-            if (capsLockMode == 1) {
-                setToLowercase()
-                capsLockBtn.setImageDrawable(capsLockMode0Image)
-                capsLockMode = 0
-                hangulAssembler.commitText(capsLetterList[i][j])
-            }
-            else {
+            if (capsLockMode == 0) {
                 hangulAssembler.commitText(letterList[i][j])
+            } else {
+                if (capsLockMode == 1) {
+                    capsLockMode = 0
+                    setToLowercase()
+                    capsLockBtn.setImageDrawable(capsLockMode0Image)
+                    for (i in letterList.indices) {
+                        for (j in letterList[i].indices) {
+                            (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                        }
+                    }
+                }
+                hangulAssembler.commitText(capsLetterList[i][j])
             }
             return true
         }

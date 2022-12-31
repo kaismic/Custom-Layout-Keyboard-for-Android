@@ -186,7 +186,7 @@ class MainKeyboardService : InputMethodService() {
                 vibrate()
                 lastDownSpacebarX = motionEvent.rawX
             } else if (action == MotionEvent.ACTION_MOVE) {
-                // todo show transition between layout on top. Use popup
+                // todo show transition between layout on top. Use popup window
             } else if (action == MotionEvent.ACTION_UP) {
                 btn.isPressed = false
                 // on scroll keyboard
@@ -251,8 +251,8 @@ class MainKeyboardService : InputMethodService() {
         phoneNumberLayout = PhoneNumberLayout(this)
         phoneNumberLayout.init()
 
-        // initially insert english layout on default
-        englishLayout.insertLetterBtns()
+        // init layout
+        changeLayout()
     }
 
     override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
@@ -409,8 +409,10 @@ class MainKeyboardService : InputMethodService() {
     private fun changeLayout() {
         resetAndFinishComposing()
         // delete middle rows
-        for (i in 0 until mainKeyboardView.childCount-2) {
-            mainKeyboardView.removeViewAt(1)
+        if (mainKeyboardView.childCount > 2) {
+            for (i in 0 until mainKeyboardView.childCount-2) {
+                mainKeyboardView.removeViewAt(1)
+            }
         }
         when (mode) {
             // special key layout
@@ -435,7 +437,9 @@ class MainKeyboardService : InputMethodService() {
         if (mode == 2) {
             koreanLayout.hangulAssembler.reset()
         }
-        currentInputConnection.finishComposingText()
+        if (currentInputConnection != null) {
+            currentInputConnection.finishComposingText()
+        }
     }
 
     fun vibrate() {

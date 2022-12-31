@@ -6,11 +6,15 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.TypefaceSpan
+import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
@@ -29,10 +33,10 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
         rowList = Array(letterList.size) { LinearLayout(mainKeyboardView.context) }
 
         for (i in letterList.indices) {
-            // initialise btnList
-            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
-            // initialise combinedLetterList
+            // initialise btnList, combinedLetterList, previewPopupList
+            btnList.add(Array(letterList[i].size) { Button(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_LetterBtn)) })
             combinedLetterList.add(Array(letterList[i].size) { SpannableString("") })
+            previewPopupList.add(Array(letterList[i].size) { PopupWindow(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_TransparentBackground)) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -78,10 +82,24 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
 
                 val gestureDetector = GestureDetector(mainKeyboardService, EnglishGestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        previewPopupList[i][j].dismiss()
+                        (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                    }
                     gestureDetector.onTouchEvent(event)
                 }
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
+
+                // key preview popup
+                previewPopupList[i][j].isTouchable = false
+                previewPopupList[i][j].contentView = TextView(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView))
+                (previewPopupList[i][j].contentView as TextView).background = ResourcesCompat.getDrawable(resources, R.drawable.preview_popup_background, ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView).theme)
+                (previewPopupList[i][j].contentView as TextView).text = letterList[i][j]
+                (previewPopupList[i][j].contentView as TextView).elevation = 8f
+                (previewPopupList[i][j].contentView as TextView).setPadding(resources.getInteger(R.integer.english_preview_popup_text_padding), 0, 0, 0)
+                (previewPopupList[i][j].contentView as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.preview_popup_text_size))
+                previewPopupList[i][j].setBackgroundDrawable(null)
             }
         }
 
@@ -92,6 +110,11 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
                     setToUppercase()
                     capsLockMode = 1
                     capsLockBtn.setImageDrawable(capsLockMode1Image)
+                    for (i in letterList.indices) {
+                        for (j in letterList[i].indices) {
+                            (previewPopupList[i][j].contentView as TextView).text = letterList[i][j].uppercase()
+                        }
+                    }
                 }
                 1 -> {
                     capsLockMode = 2
@@ -101,6 +124,11 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
                     setToLowercase()
                     capsLockMode = 0
                     capsLockBtn.setImageDrawable(capsLockMode0Image)
+                    for (i in letterList.indices) {
+                        for (j in letterList[i].indices) {
+                            (previewPopupList[i][j].contentView as TextView).text = letterList[i][j].lowercase()
+                        }
+                    }
                 }
             }
         }
@@ -150,9 +178,14 @@ class EnglishLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(m
                 mainKeyboardService.currentInputConnection.commitText(letterList[i][j], 1)
             } else {
                 if (capsLockMode == 1) {
+                    capsLockMode = 0
                     setToLowercase()
                     capsLockBtn.setImageDrawable(capsLockMode0Image)
-                    capsLockMode = 0
+                    for (i in letterList.indices) {
+                        for (j in letterList[i].indices) {
+                            (previewPopupList[i][j].contentView as TextView).text = letterList[i][j].lowercase()
+                        }
+                    }
                 }
                 mainKeyboardService.currentInputConnection.commitText(letterList[i][j].uppercase(), 1)
             }

@@ -7,6 +7,9 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.setPadding
 import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
@@ -25,7 +28,8 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
 
         for (i in subTextLetterList.indices) {
             // initialise btnList
-            btnList.add(Array(subTextLetterList[i].size) { Button(ContextThemeWrapper(mainKeyboardService, R.style.Theme_LetterBtn)) })
+            btnList.add(Array(subTextLetterList[i].size) { Button(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_LetterBtn)) })
+            previewPopupList.add(Array(subTextLetterList[i].size) { PopupWindow(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_TransparentBackground)) })
             // set linear layout attributes
             rowList[i].layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -46,10 +50,23 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
                 btnList[i][j].setPadding(0)
                 val gestureDetector = GestureDetector(mainKeyboardService, SpecialKeyGestureListener(i, j))
                 btnList[i][j].setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        previewPopupList[i][j].dismiss()
+                    }
                     gestureDetector.onTouchEvent(event)
                 }
                 // add buttons to linear layouts
                 rowList[i].addView(btnList[i][j])
+
+                // key preview popup
+                previewPopupList[i][j].isTouchable = false
+                previewPopupList[i][j].contentView = TextView(ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView))
+                (previewPopupList[i][j].contentView as TextView).background = ResourcesCompat.getDrawable(resources, R.drawable.preview_popup_background, ContextThemeWrapper(mainKeyboardView.context, R.style.Theme_PreviewPopupTextView).theme)
+                (previewPopupList[i][j].contentView as TextView).text = subTextLetterList[i][j]
+                (previewPopupList[i][j].contentView as TextView).elevation = 8f
+                (previewPopupList[i][j].contentView as TextView).setPadding(resources.getInteger(R.integer.english_preview_popup_text_padding), 0, 0, 0)
+                (previewPopupList[i][j].contentView as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.preview_popup_text_size))
+                previewPopupList[i][j].setBackgroundDrawable(null)
             }
         }
         // fill caps lock btn place
@@ -89,8 +106,6 @@ class SpecialKeyLayout(mainKeyboardService: MainKeyboardService) : KeyboardLayou
             return true
         }
 
-        override fun onLongPress(event: MotionEvent) {
-
-        }
+        override fun onLongPress(event: MotionEvent) {}
     }
 }

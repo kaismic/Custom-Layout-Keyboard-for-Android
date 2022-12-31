@@ -7,6 +7,7 @@ import android.view.ContextThemeWrapper
 import android.view.MotionEvent
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.TextView
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
 
@@ -54,7 +55,7 @@ abstract class LanguageLayout(mainKeyboardService: MainKeyboardService) : Keyboa
 
     abstract inner class LanguageGestureListener(i: Int, j: Int) : KeyboardGestureListener(i, j) {
         override fun onLongPress(event: MotionEvent) {
-            // todo keyboard button popup when pressed and on long click change text on the popup
+            (previewPopupList[i][j].contentView as TextView).text = mainKeyboardService.subTextLetterList[i][j]
             mainKeyboardService.vibrate()
             mainKeyboardService.resetAndFinishComposing()
             mainKeyboardService.currentInputConnection.commitText(mainKeyboardService.subTextLetterList[i][j], 1)

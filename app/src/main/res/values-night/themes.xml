@@ -14,5 +14,14 @@
         <item name="android:tint">@color/white</item>
     </style>
 
+    <style name="Theme.TransparentBackground" parent="Widget.AppCompat.PopupWindow">
+        <item name="android:background">@color/transparent</item>
+    </style>
 
+    <style name="Theme.PreviewPopupTextView" parent="Widget.AppCompat.TextView">
+<!--        <item name="android:background">@color/dark_theme_letter_btn_bg</item>-->
+<!--        <item name="android:tint">@color/dark_theme_letter_btn_bg</item>-->
+        <item name="android:backgroundTint">@color/dark_theme_letter_btn_bg</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
 </resources>

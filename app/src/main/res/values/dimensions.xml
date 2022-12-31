@@ -11,4 +11,8 @@
 
     <dimen name="text_scale">1.5</dimen>
     <dimen name="default_text_size">17</dimen>
+
+    <dimen name="preview_popup_text_size">32</dimen>
+    <integer name="english_preview_popup_text_padding">42</integer>
+    <integer name="korean_preview_popup_text_padding">28</integer>
 </resources>

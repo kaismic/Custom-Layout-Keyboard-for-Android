@@ -3,10 +3,12 @@ package com.soobakjonmat.customlayoutkeyboard.layout
 import android.content.res.Resources
 import android.view.ContextThemeWrapper
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
 import java.util.*
@@ -19,6 +21,8 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
 
     protected val btnList = mutableListOf<Array<Button>>()
     protected lateinit var rowList: Array<LinearLayout>
+
+    protected val previewPopupList = mutableListOf<Array<PopupWindow>>()
 
     protected val backspaceBtn = ImageButton(ContextThemeWrapper(mainKeyboardService, R.style.Theme_ControlBtn))
 
@@ -46,17 +50,23 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
     ) : GestureDetector.OnGestureListener {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
             btnList[i][j].isPressed = false
+            previewPopupList[i][j].dismiss()
             return true
         }
 
         override fun onDown(event: MotionEvent): Boolean {
             btnList[i][j].isPressed = true
+            val loc = IntArray(2)
+            btnList[i][j].getLocationInWindow(loc)
+            previewPopupList[i][j].showAtLocation(btnList[i][j], Gravity.NO_GRAVITY, 0, 0)
+            previewPopupList[i][j].update(loc[0], loc[1]-128,128, 128, false)
             mainKeyboardService.vibrate()
             return true
         }
 
         override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
             btnList[i][j].isPressed = false
+            previewPopupList[i][j].dismiss()
             if (p0.rawX - p1.rawX > gestureMinDist) {
                 mainKeyboardService.deleteByWord(-1)
                 return true
@@ -70,11 +80,10 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
 
         override fun onScroll(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
             btnList[i][j].isPressed = false
+            previewPopupList[i][j].dismiss()
             return true
         }
 
-        override fun onShowPress(p0: MotionEvent) {
-            // todo keyboard button popup when pressed and on long click change text on the popup
-        }
+        override fun onShowPress(p0: MotionEvent) {}
     }
 }
