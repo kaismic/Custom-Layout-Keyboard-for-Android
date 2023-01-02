@@ -16,16 +16,12 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.util.TypedValue
-import android.view.ContextThemeWrapper
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.LinearLayout
+import android.widget.*
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
@@ -47,8 +43,8 @@ class MainKeyboardService : InputMethodService() {
     val gestureMinDist = 120
     private val deleteByWordSeps = listOf(' ', '\n')
 
-    private val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-    private val numBtnSubTexts = listOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
+    private val numbers = arrayOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+    private val numBtnSubTexts = arrayOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
     private val combinedNums = mutableListOf<SpannableString>()
 
     val subTextLetterList = listOf(
@@ -58,7 +54,8 @@ class MainKeyboardService : InputMethodService() {
     )
     var subtextColor = 0
 
-    private lateinit var numBtns: List<Button>
+    private lateinit var numBtns: Array<Button>
+    private lateinit var numBtnPreviewPopupArr: Array<PopupWindow>
     private lateinit var specialKeyBtn: Button
     private lateinit var commaBtn: Button
     private lateinit var spacebarBtn: Button
@@ -76,19 +73,19 @@ class MainKeyboardService : InputMethodService() {
     private var returnKeyImageTab: VectorDrawableCompat? = null
     var currReturnKeyImage: VectorDrawableCompat? = null
 
-    private val searchIconActionList = listOf(
+    private val searchIconActionList = arrayOf(
         EditorInfo.IME_ACTION_SEARCH,
         EditorInfo.IME_ACTION_GO,
     )
-    private val doneIconActionList = listOf(
+    private val doneIconActionList = arrayOf(
         EditorInfo.IME_ACTION_DONE
     )
-    private val returnIconActionList = listOf(
+    private val returnIconActionList = arrayOf(
         EditorInfo.IME_ACTION_SEND,
         EditorInfo.IME_ACTION_NONE,
         EditorInfo.IME_ACTION_UNSPECIFIED,
     )
-    private val tabIconActionList = listOf(
+    private val tabIconActionList = arrayOf(
         EditorInfo.IME_ACTION_NEXT
     )
     var currIMEOptions = 0
@@ -99,7 +96,7 @@ class MainKeyboardService : InputMethodService() {
 
     private lateinit var vibrator: Vibrator
 
-    private val settingsKeyList = listOf("settings_long_click_delete_speed", "settings_keyboard_height")
+    private val settingsKeyList = arrayOf("settings_long_click_delete_speed", "settings_keyboard_height")
     private val myReceiver = MyReceiver()
     // todo word suggestion
 
@@ -126,7 +123,9 @@ class MainKeyboardService : InputMethodService() {
         // number buttons
         val numberRow = mainKeyboardView.findViewById<LinearLayout>(R.id.number_row)
 
-        numBtns = List(numbers.size) { Button(ContextThemeWrapper(this, R.style.Theme_LetterBtn)) }
+        numBtns = Array(numbers.size) { Button(ContextThemeWrapper(this, R.style.Theme_LetterBtn)) }
+        numBtnPreviewPopupArr = Array(numbers.size) { PopupWindow(ContextThemeWrapper(this, R.style.Theme_TransparentBackground)) }
+
         subtextColor = if (isDarkTheme()) {
             getColor(R.color.dark_theme_subtext)
         } else {
@@ -148,18 +147,28 @@ class MainKeyboardService : InputMethodService() {
             }
             combinedNums[i].setSpan(RelativeSizeSpan(resources.getFloat(R.dimen.text_scale)), combinedNums[i].length-1, combinedNums[i].length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             numBtns[i].text = combinedNums[i]
-            numBtns[i].setOnLongClickListener {
-                vibrate()
-                resetAndFinishComposing()
-                currentInputConnection.commitText(numBtnSubTexts[i], 1)
-                return@setOnLongClickListener true
+
+
+            val gestureDetector = GestureDetector(this, NumBtnGestureListener(i))
+            numBtns[i].setOnTouchListener { _, event ->
+                if (event.action == MotionEvent.ACTION_UP) {
+                    numBtnPreviewPopupArr[i].dismiss()
+                    (numBtnPreviewPopupArr[i].contentView as TextView).text = numbers[i]
+                }
+                gestureDetector.onTouchEvent(event)
             }
-            numBtns[i].setOnClickListener {
-                vibrate()
-                resetAndFinishComposing()
-                currentInputConnection.commitText(numbers[i], 1)
-            }
+
             numberRow.addView(numBtns[i])
+
+            // key preview popup
+            numBtnPreviewPopupArr[i].isTouchable = false
+            numBtnPreviewPopupArr[i].contentView = TextView(ContextThemeWrapper(this, R.style.Theme_PreviewPopupTextView))
+            (numBtnPreviewPopupArr[i].contentView as TextView).background = ResourcesCompat.getDrawable(resources, R.drawable.preview_popup_background, ContextThemeWrapper(this, R.style.Theme_PreviewPopupTextView).theme)
+            (numBtnPreviewPopupArr[i].contentView as TextView).text = numbers[i]
+            (numBtnPreviewPopupArr[i].contentView as TextView).elevation = 8f
+            (numBtnPreviewPopupArr[i].contentView as TextView).setPadding(resources.getInteger(R.integer.english_preview_popup_text_padding), 0, 0, 0)
+            (numBtnPreviewPopupArr[i].contentView as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.preview_popup_text_size))
+            numBtnPreviewPopupArr[i].setBackgroundDrawable(null)
         }
 
         // special key
@@ -481,5 +490,54 @@ class MainKeyboardService : InputMethodService() {
     override fun onDestroy() {
         unregisterReceiver(myReceiver)
         super.onDestroy()
+    }
+
+    inner class NumBtnGestureListener(private val i: Int) : GestureDetector.OnGestureListener {
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
+            numBtns[i].isPressed = false
+            numBtnPreviewPopupArr[i].dismiss()
+            resetAndFinishComposing()
+            currentInputConnection.commitText(numbers[i], 1)
+            return true
+        }
+
+        override fun onDown(event: MotionEvent): Boolean {
+            numBtns[i].isPressed = true
+            val loc = IntArray(2)
+            numBtns[i].getLocationInWindow(loc)
+            numBtnPreviewPopupArr[i].showAtLocation(numBtns[i], Gravity.NO_GRAVITY, 0, 0)
+            numBtnPreviewPopupArr[i].update(loc[0], loc[1]-128, 128, 128, false)
+            vibrate()
+            return true
+        }
+
+        override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            numBtns[i].isPressed = false
+            numBtnPreviewPopupArr[i].dismiss()
+            if (p0.rawX - p1.rawX > gestureMinDist) {
+                deleteByWord(-1)
+                return true
+            }
+            else if (p1.rawX - p0.rawX > gestureMinDist) {
+                deleteByWord(1)
+                return true
+            }
+            return false
+        }
+
+        override fun onScroll(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+            numBtns[i].isPressed = false
+            numBtnPreviewPopupArr[i].dismiss()
+            return true
+        }
+
+        override fun onLongPress(event: MotionEvent) {
+            (numBtnPreviewPopupArr[i].contentView as TextView).text = numBtnSubTexts[i]
+            vibrate()
+            resetAndFinishComposing()
+            currentInputConnection.commitText(numBtnSubTexts[i], 1)
+        }
+
+        override fun onShowPress(p0: MotionEvent) {}
     }
 }
