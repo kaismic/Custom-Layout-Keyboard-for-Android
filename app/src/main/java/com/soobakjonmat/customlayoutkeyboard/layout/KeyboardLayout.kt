@@ -59,7 +59,7 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
             val loc = IntArray(2)
             btnList[i][j].getLocationInWindow(loc)
             previewPopupList[i][j].showAtLocation(btnList[i][j], Gravity.NO_GRAVITY, 0, 0)
-            previewPopupList[i][j].update(loc[0], loc[1]-128,128, 128, false)
+            previewPopupList[i][j].update(loc[0], loc[1]-128, 128, 128, false)
             mainKeyboardService.vibrate()
             return true
         }
