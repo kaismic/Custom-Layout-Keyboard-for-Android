@@ -25,10 +25,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
 import androidx.core.view.setPadding
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.soobakjonmat.customlayoutkeyboard.layout.EnglishLayout
-import com.soobakjonmat.customlayoutkeyboard.layout.KoreanLayout
-import com.soobakjonmat.customlayoutkeyboard.layout.PhoneNumberLayout
-import com.soobakjonmat.customlayoutkeyboard.layout.SpecialKeyLayout
+import com.soobakjonmat.customlayoutkeyboard.layout.*
 import kotlin.math.absoluteValue
 
 class MainKeyboardService : InputMethodService() {
@@ -39,6 +36,9 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var koreanLayout: KoreanLayout
     private lateinit var specialKeyLayout: SpecialKeyLayout
     private lateinit var phoneNumberLayout: PhoneNumberLayout
+
+    private lateinit var languageLayouts: Array<LanguageLayout>
+
     var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
     private val deleteByWordSeps = listOf(' ', '\n')
@@ -185,6 +185,7 @@ class MainKeyboardService : InputMethodService() {
                 specialKeyBtn.text = getString(R.string.special_key_text_special_key)
             }
         }
+
         // spacebar
         spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
 
@@ -222,6 +223,7 @@ class MainKeyboardService : InputMethodService() {
             }
             return@setOnTouchListener true
         }
+
         // comma
         commaBtn = mainKeyboardView.findViewById(R.id.comma)
         commaBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
@@ -259,6 +261,8 @@ class MainKeyboardService : InputMethodService() {
         specialKeyLayout.init()
         phoneNumberLayout = PhoneNumberLayout(this)
         phoneNumberLayout.init()
+
+        languageLayouts = arrayOf(englishLayout, koreanLayout)
 
         // init layout
         changeLayout()
@@ -361,8 +365,9 @@ class MainKeyboardService : InputMethodService() {
             }
             numBtns[i].text = combinedNums[i]
         }
-        englishLayout.updateSubtextColor()
-        koreanLayout.updateSubtextColor()
+        for (layout in languageLayouts) {
+            layout.updateSubtextColor()
+        }
     }
 
     fun deleteByWord(direction: Int): Boolean {
