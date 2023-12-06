@@ -7,7 +7,7 @@
     <img src="images/screenshot_2.png" style="width: 30%; height: 30%; padding:0% 1%">
 </div>
 
-## Layout Hierarchy
+## Layout Inheritance
 <img src="images/layout_inheritance_diagram.png">
 
 Anyone can modify and use this app for personal use.
