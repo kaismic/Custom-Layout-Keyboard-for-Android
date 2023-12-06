@@ -49,6 +49,13 @@ abstract class LanguageLayout(mainKeyboardService: MainKeyboardService) : Keyboa
         }
     }
 
+    override fun insertLayout() {
+        for (i in rowList.size - 1 downTo 0) {
+            mainKeyboardView.addView(rowList[i], 0)
+        }
+        mainKeyboardView.addView(mainKeyboardService.numberRow, 0)
+    }
+
     protected abstract fun setToUppercase()
 
     protected abstract fun setToLowercase()

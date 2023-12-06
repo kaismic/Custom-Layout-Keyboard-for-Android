@@ -20,7 +20,6 @@ import androidx.core.view.size
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.HangulAssembler
 import com.soobakjonmat.customlayoutkeyboard.R
-import java.util.*
 
 class KoreanLayout(mainKeyboardService: MainKeyboardService) : LanguageLayout(mainKeyboardService) {
     val hangulAssembler = HangulAssembler(mainKeyboardService)

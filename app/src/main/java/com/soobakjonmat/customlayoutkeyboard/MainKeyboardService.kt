@@ -32,25 +32,24 @@ class MainKeyboardService : InputMethodService() {
     private lateinit var keyboardRoot: FrameLayout
     lateinit var mainKeyboardView: LinearLayout
     lateinit var phoneNumKeyboardView: LinearLayout
-    private lateinit var englishLayout: EnglishLayout
-    private lateinit var koreanLayout: KoreanLayout
-    private lateinit var specialKeyLayout: SpecialKeyLayout
-    private lateinit var phoneNumberLayout: PhoneNumberLayout
 
-    private lateinit var languageLayouts: Array<LanguageLayout>
+    private val languageMode = mapOf("Special" to 0, "English" to 1, "Korean" to 2)
+    private lateinit var standardLayouts: Array<KeyboardLayout>
+    private lateinit var phoneNumberLayout: PhoneNumberLayout
 
     var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
 
     private val numbers = arrayOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-    private val numBtnSubTexts = arrayOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
-    private val combinedNums = mutableListOf<SpannableString>()
-
+    val numBtnSubTexts = arrayOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
     val subTextLetterList = listOf(
-        arrayOf("!", "(", ")", "\\", "|", "[", "]", "{", "}"),
+        arrayOf("", "", "", "\\", "|", "[", "]", "{", "}"),
         arrayOf("", "", "`", "~", "-", "_", ":", ";", "\"", "'"),
-        arrayOf("<", ">", "=", "+", "*", "/", "?")
+        arrayOf("", "<", ">", "=", "+", "/", "?")
     )
+    private val combinedNums = mutableListOf<SpannableString>()
+    lateinit var numberRow: LinearLayout
+
     var subtextColor = 0
 
     private lateinit var numBtns: Array<Button>
@@ -70,6 +69,7 @@ class MainKeyboardService : InputMethodService() {
     private var returnKeyImageForward: VectorDrawableCompat? = null
     private var returnKeyImageReturn: VectorDrawableCompat? = null
     private var returnKeyImageTab: VectorDrawableCompat? = null
+
     var currReturnKeyImage: VectorDrawableCompat? = null
 
     private val searchIconActionList = arrayOf(
@@ -89,7 +89,7 @@ class MainKeyboardService : InputMethodService() {
     )
     var currIMEOptions = 0
 
-    private var mode = 1
+    private var mode = languageMode["English"]!!
     private var lastDownSpacebarX = 0f
     private var lastCursorPos = 0
 
@@ -106,6 +106,12 @@ class MainKeyboardService : InputMethodService() {
         mainKeyboardView = layoutInflater.inflate(R.layout.main_keyboardview, null) as LinearLayout
         phoneNumKeyboardView = layoutInflater.inflate(R.layout.phone_number_keyboardview, null) as LinearLayout
 
+        specialKeyBtn = mainKeyboardView.findViewById(R.id.special_key)
+        commaBtn = mainKeyboardView.findViewById(R.id.comma)
+        spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
+        fullStopBtn = mainKeyboardView.findViewById(R.id.full_stop)
+        returnKeyBtn = mainKeyboardView.findViewById(R.id.return_key)
+
         val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibrator = vm.defaultVibrator
 
@@ -120,8 +126,13 @@ class MainKeyboardService : InputMethodService() {
         returnKeyImageForward = VectorDrawableCompat.create(resources, R.drawable.ic_outline_arrow_forward_24, null)
 
         // number buttons
-        val numberRow = mainKeyboardView.findViewById<LinearLayout>(R.id.number_row)
-
+        numberRow = LinearLayout(mainKeyboardView.context)
+        numberRow.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            0,
+            1f
+        )
+        numberRow.orientation = LinearLayout.HORIZONTAL
         numBtns = Array(numbers.size) { Button(ContextThemeWrapper(this, R.style.Theme_LetterBtn)) }
         numBtnPreviewPopupArr = Array(numbers.size) { PopupWindow(ContextThemeWrapper(this, R.style.Theme_TransparentBackground)) }
 
@@ -171,7 +182,6 @@ class MainKeyboardService : InputMethodService() {
         }
 
         // special key
-        specialKeyBtn = mainKeyboardView.findViewById(R.id.special_key)
         specialKeyBtn.setOnClickListener {
             vibrate()
             if (mode != 0) {
@@ -186,8 +196,6 @@ class MainKeyboardService : InputMethodService() {
         }
 
         // spacebar
-        spacebarBtn = mainKeyboardView.findViewById(R.id.spacebar)
-
         spacebarBtn.setOnTouchListener { btn, motionEvent ->
             val action = motionEvent.action
             if (action == MotionEvent.ACTION_DOWN) {
@@ -224,7 +232,6 @@ class MainKeyboardService : InputMethodService() {
         }
 
         // comma
-        commaBtn = mainKeyboardView.findViewById(R.id.comma)
         commaBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         commaBtn.setOnClickListener {
             vibrate()
@@ -232,7 +239,6 @@ class MainKeyboardService : InputMethodService() {
             currentInputConnection.commitText(",", 1)
         }
         // full stop
-        fullStopBtn = mainKeyboardView.findViewById(R.id.full_stop)
         fullStopBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, resources.getFloat(R.dimen.default_text_size))
         fullStopBtn.setOnClickListener {
             vibrate()
@@ -240,7 +246,6 @@ class MainKeyboardService : InputMethodService() {
             currentInputConnection.commitText(".", 1)
         }
         // return key
-        returnKeyBtn = mainKeyboardView.findViewById(R.id.return_key)
         returnKeyBtn.setOnClickListener {
             vibrate()
             resetAndFinishComposing()
@@ -252,16 +257,12 @@ class MainKeyboardService : InputMethodService() {
             }
         }
 
-        englishLayout = EnglishLayout(this)
-        englishLayout.init()
-        koreanLayout = KoreanLayout(this)
-        koreanLayout.init()
-        specialKeyLayout = SpecialKeyLayout(this)
-        specialKeyLayout.init()
+        standardLayouts = arrayOf(SpecialKeyLayout(this), EnglishLayout(this), KoreanLayout(this))
+        for (layout in standardLayouts) {
+            layout.init()
+        }
         phoneNumberLayout = PhoneNumberLayout(this)
         phoneNumberLayout.init()
-
-        languageLayouts = arrayOf(englishLayout, koreanLayout)
 
         // init layout
         changeLayout()
@@ -292,7 +293,6 @@ class MainKeyboardService : InputMethodService() {
         if ((currIMEOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION) == EditorInfo.IME_FLAG_NO_ENTER_ACTION) {
             currReturnKeyImage = returnKeyImageReturn
         }
-
         returnKeyBtn.setImageDrawable(currReturnKeyImage)
 
         keyboardRoot = if (mainKeyboardView.parent != null) {
@@ -301,7 +301,7 @@ class MainKeyboardService : InputMethodService() {
             phoneNumKeyboardView.parent as FrameLayout
         }
         // if inputType is phone number
-        if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == InputType.TYPE_CLASS_PHONE) {
+        if (editorInfo?.inputType?.and(InputType.TYPE_MASK_CLASS) == (InputType.TYPE_CLASS_PHONE or InputType.TYPE_CLASS_NUMBER)) {
             if (keyboardRoot.children.contains(mainKeyboardView)) {
                 keyboardRoot.removeView(mainKeyboardView)
                 phoneNumberLayout.updateReturnKeyImage()
@@ -322,7 +322,7 @@ class MainKeyboardService : InputMethodService() {
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
         val currPos = cursorAnchorInfo.selectionStart
-        if ((currPos != lastCursorPos + 1 || !koreanLayout.hangulAssembler.cursorMovedBySystem) && currPos != lastCursorPos) {
+        if ((currPos != lastCursorPos + 1 || !(standardLayouts[languageMode["Korean"]!!] as KoreanLayout).hangulAssembler.cursorMovedBySystem) && currPos != lastCursorPos) {
             resetAndFinishComposing()
         }
         lastCursorPos = currPos
@@ -364,9 +364,8 @@ class MainKeyboardService : InputMethodService() {
             }
             numBtns[i].text = combinedNums[i]
         }
-        for (layout in languageLayouts) {
-            layout.updateSubtextColor()
-        }
+        (standardLayouts[languageMode["English"]!!] as LanguageLayout).updateSubtextColor()
+        (standardLayouts[languageMode["Korean"]!!] as LanguageLayout).updateSubtextColor()
     }
 
     fun deleteByWord(direction: Int): Boolean {
@@ -426,34 +425,32 @@ class MainKeyboardService : InputMethodService() {
 
     private fun changeLayout() {
         resetAndFinishComposing()
-        // delete middle rows
-        if (mainKeyboardView.childCount > 2) {
-            for (i in 0 until mainKeyboardView.childCount-2) {
-                mainKeyboardView.removeViewAt(1)
+        if (mainKeyboardView.childCount > 1) { // check if this is initial layout insert call
+            // delete remove every row except control row
+            for (i in 0 until mainKeyboardView.childCount-1) {
+                mainKeyboardView.removeViewAt(0)
             }
         }
+        standardLayouts[mode].insertLayout()
         when (mode) {
             // special key layout
-            0 -> {
-                specialKeyLayout.insertLetterBtns()
+            languageMode["Special"]!! -> {
                 spacebarBtn.text = getString(R.string.spacebar_text_special_key)
             }
             // english layout
-            1 -> {
-                englishLayout.insertLetterBtns()
+            languageMode["English"]!! -> {
                 spacebarBtn.text = getString(R.string.spacebar_text_english)
             }
             // korean layout
-            2 -> {
-                koreanLayout.insertLetterBtns()
+            languageMode["Korean"]!! -> {
                 spacebarBtn.text = getString(R.string.spacebar_text_korean)
             }
         }
     }
 
     fun resetAndFinishComposing() {
-        if (mode == 2) {
-            koreanLayout.hangulAssembler.reset()
+        if (mode == languageMode["Korean"]) {
+            (standardLayouts[languageMode["Korean"]!!] as KoreanLayout).hangulAssembler.reset()
         }
         if (currentInputConnection != null) {
             currentInputConnection.finishComposingText()

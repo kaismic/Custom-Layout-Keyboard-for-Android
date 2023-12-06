@@ -11,8 +11,8 @@ import android.widget.LinearLayout
 import android.widget.PopupWindow
 import com.soobakjonmat.customlayoutkeyboard.MainKeyboardService
 import com.soobakjonmat.customlayoutkeyboard.R
-import java.util.*
 import kotlin.concurrent.timerTask
+import java.util.Timer
 
 abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardService) {
     protected val mainKeyboardView = mainKeyboardService.mainKeyboardView
@@ -38,12 +38,7 @@ abstract class KeyboardLayout(protected val mainKeyboardService: MainKeyboardSer
         }
     }
 
-    fun insertLetterBtns() {
-        for (i in rowList.size - 1 downTo 0) {
-            mainKeyboardView.addView(rowList[i], 1)
-        }
-    }
-
+    abstract fun insertLayout()
     abstract inner class KeyboardGestureListener(
         protected val i: Int,
         protected val j: Int
