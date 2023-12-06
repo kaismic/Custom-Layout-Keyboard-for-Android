@@ -8,7 +8,7 @@
 </div>
 
 ## Layout Hierarchy
-<img src="images/layout_hierarchy_diagram.png">
+<img src="images/layout_inheritance_diagram.png">
 
 Anyone can modify and use this app for personal use.
 
@@ -29,6 +29,8 @@ To change the special key layout, change the strings in 'subTextLetterList' in "
 Current Supported Languages:
 - English
 - Korean
+
+Requires Android 13 (API level 33) or higher
 
 Tested Devices:
 - Google Pixel 4a
