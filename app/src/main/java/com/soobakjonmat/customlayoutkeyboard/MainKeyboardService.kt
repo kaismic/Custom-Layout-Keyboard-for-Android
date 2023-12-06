@@ -41,7 +41,6 @@ class MainKeyboardService : InputMethodService() {
 
     var rapidTextDeleteInterval: Long = 200 // in milliseconds
     val gestureMinDist = 120
-    private val deleteByWordSeps = listOf(' ', '\n')
 
     private val numbers = arrayOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     private val numBtnSubTexts = arrayOf("!", "@", "#", "$", "%", "^", "&", "*", "(", ")")
@@ -49,8 +48,8 @@ class MainKeyboardService : InputMethodService() {
 
     val subTextLetterList = listOf(
         arrayOf("!", "(", ")", "\\", "|", "[", "]", "{", "}"),
-        arrayOf("", "`", "×", "÷", "_", "~", ":", ";", "\"", "'"),
-        arrayOf("", "=", "+", "-", "*", "/", "?")
+        arrayOf("", "", "`", "~", "-", "_", ":", ";", "\"", "'"),
+        arrayOf("<", ">", "=", "+", "*", "/", "?")
     )
     var subtextColor = 0
 
@@ -374,41 +373,46 @@ class MainKeyboardService : InputMethodService() {
         resetAndFinishComposing()
         vibrate()
         var count = 1
-        var textToDelete = ""
         when (direction) {
             -1 -> {
-                if (currentInputConnection.getTextBeforeCursor(count, 0).isNullOrEmpty()) {
+                val firstBefore = currentInputConnection.getTextBeforeCursor(1, 0)
+                if (firstBefore.isNullOrEmpty()) {
                     return false
+                } else if (firstBefore == "\n") {
+                    this.currentInputConnection.deleteSurroundingText(1, 0)
+                    return true
                 }
-                if (currentInputConnection.getTextBeforeCursor(count, 0)?.first() in deleteByWordSeps) {
-                    while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() in deleteByWordSeps &&
-                        currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
-                        textToDelete = currentInputConnection.getTextBeforeCursor(count, 0).toString()
-                        count++
+                while (true) {
+                    val text = currentInputConnection.getTextBeforeCursor(count, 0)
+                    if (text?.first() == '\n') {
+                        count--
+                        break
                     }
-                }
-                while (currentInputConnection.getTextBeforeCursor(count, 0)?.first() !in deleteByWordSeps &&
-                    currentInputConnection.getTextBeforeCursor(count, 0)?.length != textToDelete.length) {
-                    textToDelete = currentInputConnection.getTextBeforeCursor(count, 0).toString()
+                    if (text?.first() == ' ' || text?.length != count) {
+                        break
+                    }
                     count++
                 }
                 this.currentInputConnection.deleteSurroundingText(count, 0)
                 return true
             }
             1 -> {
-                if (currentInputConnection.getTextAfterCursor(count, 0).isNullOrEmpty()) {
+                val firstAfter = currentInputConnection.getTextAfterCursor(1, 0)
+                if (firstAfter.isNullOrEmpty()) {
                     return false
+                } else if (firstAfter == "\n") {
+                    this.currentInputConnection.deleteSurroundingText(0, 1)
+                    return true
                 }
-                if (currentInputConnection.getTextAfterCursor(count, 0)?.last() in deleteByWordSeps) {
-                    while (currentInputConnection.getTextAfterCursor(count, 0)?.last() in deleteByWordSeps &&
-                        currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
-                        textToDelete = currentInputConnection.getTextAfterCursor(count, 0).toString()
-                        count++
+                while (true) {
+                    val text = currentInputConnection.getTextAfterCursor(count, 0)
+                    if (text?.last() == '\n') {
+                        count--
+                        break
                     }
-                }
-                while (currentInputConnection.getTextAfterCursor(count, 0)?.last() !in deleteByWordSeps &&
-                    currentInputConnection.getTextAfterCursor(count, 0)?.length != textToDelete.length) {
-                    textToDelete = currentInputConnection.getTextAfterCursor(count, 0).toString()
+                    if (text?.last() == ' ' || text?.length != count) {
+                        break
+                    }
                     count++
                 }
                 this.currentInputConnection.deleteSurroundingText(0, count)
