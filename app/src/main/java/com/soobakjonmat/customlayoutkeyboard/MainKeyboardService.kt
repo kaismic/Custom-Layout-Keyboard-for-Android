@@ -257,7 +257,11 @@ class MainKeyboardService : InputMethodService() {
             }
         }
 
-        standardLayouts = arrayOf(SpecialKeyLayout(this), EnglishLayout(this), KoreanLayout(this))
+        standardLayouts = arrayOf(
+            SpecialKeyLayout(this),
+            EnglishLayout(this),
+            KoreanLayout(this)
+        )
         for (layout in standardLayouts) {
             layout.init()
         }
