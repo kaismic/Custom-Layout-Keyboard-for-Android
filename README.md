@@ -9,13 +9,6 @@
 
 ## Layout Inheritance
 <img src="images/layout_inheritance_diagram.png">
-
-Anyone can modify and use this app for personal use.
-
-No commercial use.
-
-I built this app because there were no good android keyboards which allowed me to use a custom key layout of my own.
-
 Default layout is based on the Colemak layout but slightly different.
 
 Created based on Microsoft SwiftKey.
@@ -26,11 +19,8 @@ To change the letter key layout, change the strings in `letterList` in `EnglishL
 
 To change the special key layout, change the strings in `subTextLetterList` in `MainKeyboardService.kt`.
 
-Current Supported Languages:
+Currently Supported Languages:
 - English
 - Korean
 
 Requires Android 13 (API level 33) or higher
-
-Tested Devices:
-- Google Pixel 4a
