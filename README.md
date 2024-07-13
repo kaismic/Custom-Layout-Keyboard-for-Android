@@ -1,11 +1,13 @@
 # Custom Layout Keyboard for Android
 
 ## Previews:
-<div style="display: flex; flex-direction: row; column-gap: 1rem; justify-content: center;">
+<div style="display: flex; flex-direction: row; column-gap: 1rem; justify-content: center; width: 100%">
     <img src="./readme_resources/screenshot1.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot2.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot3.png" style="width: 20%"/>
-    <video src="./readme_resources/screenrecord1.mp4" loop autoplay mute type="video/mp4" style="width: 20%;"/>
+    <video loop autoplay mute style="width: 20%">
+        <source src="./readme_resources/screenrecord1.mp4" type="video/mp4">
+    </video>
 </div>
 
 ## Layout Inheritance
