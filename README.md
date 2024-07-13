@@ -2,13 +2,13 @@
 
 ## Preview
 <div align="center">
-    <img src="./readme_resources/preview_image_1.png" style="width: 20%"/>
-    <img src="./readme_resources/preview_image_2.png" style="width: 20%"/>
-    <img src="./readme_resources/preview_image_3.png" style="width: 20%"/>
+    <img src="./resources/preview_image_1.png" style="width: 20%"/>
+    <img src="./resources/preview_image_2.png" style="width: 20%"/>
+    <img src="./resources/preview_image_3.png" style="width: 20%"/>
 </div>
 
 ## Layout Inheritance
-<img src="readme_resources/layout_inheritance_diagram.png">
+<img src="resources/layout_inheritance_diagram.png">
 
 Default layout is based on the Colemak layout but slightly different.
 
