@@ -1,7 +1,7 @@
 # Custom Layout Keyboard for Android
 
 ## Previews:
-<div style="display: flex; flex-direction: row; column-gap: 1rem; justify-content: center; width: 100%">
+<div align="center">
     <img src="./readme_resources/screenshot1.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot2.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot3.png" style="width: 20%"/>
