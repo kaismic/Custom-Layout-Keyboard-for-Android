@@ -5,7 +5,7 @@
     <img src="readme_resources/screenshot1.png" style="width: 20%"/>
     <img src="readme_resources/screenshot2.png" style="width: 20%"/>
     <img src="readme_resources/screenshot3.png" style="width: 20%"/>
-    <video src="readme_resources/screenrecord1.mp4" autoplay loop muted style="width: 20%; display: block"/>
+    <video src="readme_resources/screenrecord1.mp4" autoplay loop muted style="width: 20%;"/>
 </div>
 
 ## Layout Inheritance
