@@ -5,9 +5,6 @@
     <img src="./readme_resources/screenshot1.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot2.png" style="width: 20%"/>
     <img src="./readme_resources/screenshot3.png" style="width: 20%"/>
-    <video loop autoplay mute style="width: 20%">
-        <source src="./readme_resources/screenrecord1.mp4" type="video/mp4">
-    </video>
 </div>
 
 ## Layout Inheritance
