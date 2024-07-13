@@ -2,9 +2,9 @@
 
 ## Previews:
 <div align="center">
-    <img src="./readme_resources/screenshot1.png" style="width: 20%"/>
-    <img src="./readme_resources/screenshot2.png" style="width: 20%"/>
-    <img src="./readme_resources/screenshot3.png" style="width: 20%"/>
+    <img src="./readme_resources/preview_image_1.png" style="width: 20%"/>
+    <img src="./readme_resources/preview_image_2.png" style="width: 20%"/>
+    <img src="./readme_resources/preview_image_3.png" style="width: 20%"/>
 </div>
 
 ## Layout Inheritance
