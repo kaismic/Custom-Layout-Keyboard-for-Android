@@ -1,6 +1,6 @@
 # Custom Layout Keyboard for Android
 
-## Previews:
+## Preview
 <div align="center">
     <img src="./readme_resources/preview_image_1.png" style="width: 20%"/>
     <img src="./readme_resources/preview_image_2.png" style="width: 20%"/>
