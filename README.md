@@ -1,14 +1,16 @@
 # Custom Layout Keyboard for Android
 
 ## Previews:
-<div style="display: flex">
-    <img src="images/screenshot_0.png" style="width: 30%; height: 30%; padding:0% 1%">
-    <img src="images/screenshot_1.png" style="width: 30%; height: 30%; padding:0% 1%">
-    <img src="images/screenshot_2.png" style="width: 30%; height: 30%; padding:0% 1%">
+<div style="display: flex; flex-direction: row; column-gap: 1rem; justify-content: center;">
+    <img src="readme_resources/screenshot1.png" style="width: 20%"/>
+    <img src="readme_resources/screenshot2.png" style="width: 20%"/>
+    <img src="readme_resources/screenshot3.png" style="width: 20%"/>
+    <video src="readme_resources/screenrecord1.mp4" autoplay loop muted style="width: 20%; display: block"/>
 </div>
 
 ## Layout Inheritance
-<img src="images/layout_inheritance_diagram.png">
+<img src="readme_resources/layout_inheritance_diagram.png">
+
 Default layout is based on the Colemak layout but slightly different.
 
 Created based on Microsoft SwiftKey.
