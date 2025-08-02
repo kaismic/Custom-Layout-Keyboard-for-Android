@@ -1,5 +1,7 @@
 # Custom Layout Keyboard for Android
 
+### This repository is no longer maintained.
+
 ## Preview
 <div align="center">
     <img src="./resources/preview_image_1.png" style="width: 20%"/>
